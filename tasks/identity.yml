@@ -1,0 +1,49 @@
+- name: Ensure all required variables are set
+  fail: msg="Variable '{{item}}' is not set!"
+  when: "{{item}} == ''"
+  with_items:
+    - conjurize_account
+    - conjurize_appliance_url
+    - conjurize_host_factory_token
+    - conjurize_ssl_certificate
+    - conjurize_host_name
+
+- name: Create group conjur
+  group:
+    name: conjur
+    state: present
+
+- name: Place Conjur public SSL certificate
+  copy:
+    dest: /etc/conjur.pem
+    content: "{{conjurize_ssl_certificate}}"
+    mode: 0644
+
+- name: Render /etc/conjur.conf
+  template:
+    src: templates/conjur.conf.j2
+    dest: /etc/conjur.conf
+    mode: 0644
+
+- name: Request identity from Conjur
+  uri:
+    url: "{{conjurize_appliance_url}}/host_factories/hosts?id={{conjurize_host_name}}"
+    method: POST
+    headers:
+      Authorization: Token token="{{conjurize_host_factory_token}}"
+    status_code: 201
+    validate_certs: no  # using a self-signed cert is coming in Ansible 2.3 - https://github.com/ansible/ansible/pull/18141
+  register: host_factory_response
+
+- name: Place identity file in /dev/shm
+  template:
+    src: templates/conjur.identity.j2
+    dest: /dev/shm/conjur.identity
+    mode: 0640
+    group: conjur
+
+- name: Symlink identity file to /etc/conjur.identity
+  file:
+    src: /dev/shm/conjur.identity
+    dest: /etc/conjur.identity
+    state: link

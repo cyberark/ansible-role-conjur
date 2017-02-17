@@ -1,0 +1,10 @@
+- hosts: all
+  become: true
+  roles:
+    - { role: ansible-role-conjurize,
+        conjurize_account: conjur,
+        conjurize_appliance_url: 'https://conjur-master-v2.itp.conjur.net/api',
+        conjurize_host_factory_token: "{{lookup('env', 'HFTOKEN')}}",
+        conjurize_ssl_certificate: "{{lookup('file', '~/conjur-conjur.pem')}}",
+        conjurize_host_name: 'test123456789'
+      }
