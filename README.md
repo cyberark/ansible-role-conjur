@@ -1,38 +1,57 @@
-Role Name
+ansible-role-conjur
 =========
 
-A brief description of the role goes here.
+Configures Conjur identity and SSH access management on machines.
+The [conjur](https://github.com/conjur-cookbooks/conjur) Chef cookbook is downloaded and run to set up Conjur SSH.
+
+Note that this is a work in progress and should not be used yet!
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+A Conjur endpoint to retrieve identities from.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+* `conjur_account`: Conjur account
+* `conjur_appliance_url`: Conjur endpoint
+* `conjur_host_factory_token`: [Host Factory](https://developer.conjur.net/reference/services/host_factory/) token for layer enrollment
+* `conjur_ssl_certificate`: Public SSL certificate of Conjur endpoint
+* `conjur_host_name`: Name of the host being conjurized.
+* `conjur_validate_certs`: yes
+
+* `conjur_ssh_enable`: Configure Conjur SSH management, default `false`
+* `conjur_ssh_cookbook_version`: Version of the 'conjur' cookbook to use
+* `conjur_ssh_cookbook_url`: URL to download the cookbook tarball from
+* `conjur_ssh_chef_version`: Version of Chef to install
+* `conjur_ssh_chef_url`: URL to download Chef from
+* `conjur_ssh_chef_checksum`: SHA256 checksum of the Chef package
+
+Sane defaults are set in [defaults/main.yml](defaults/main.yml).
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```yml
+- hosts: servers
+  roles:
+     - role: conjur
+       conjur_account: 'myorg',
+       conjur_appliance_url: 'https://conjur.myorg.com/api',
+       conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}",
+       conjur_ssl_certificate: "{{lookup('file', '~/conjur-myorg.pem')}}",
+       conjur_host_name: "{{inventory_hostname}}"
+       conjur_ssh_enable: yes
+```
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
 
 License
 -------
 
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+MIT

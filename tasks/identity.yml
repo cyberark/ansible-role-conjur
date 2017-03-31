@@ -2,11 +2,11 @@
   fail: msg="Variable '{{item}}' is not set!"
   when: "{{item}} == ''"
   with_items:
-    - conjurize_account
-    - conjurize_appliance_url
-    - conjurize_host_factory_token
-    - conjurize_ssl_certificate
-    - conjurize_host_name
+    - conjur_account
+    - conjur_appliance_url
+    - conjur_host_factory_token
+    - conjur_ssl_certificate
+    - conjur_host_name
 
 - name: Create group conjur
   group:
@@ -16,8 +16,19 @@
 - name: Place Conjur public SSL certificate
   copy:
     dest: /etc/conjur.pem
-    content: "{{conjurize_ssl_certificate}}"
+    content: "{{conjur_ssl_certificate}}"
     mode: 0644
+
+- name: Symlink Conjur public SSL certificate into /etc/ssl/certs
+  file:
+    src: /etc/conjur.pem
+    dest: /etc/ssl/certs/conjur.crt
+    state: link
+  register: cert_symlink
+
+- name: Rehash certs
+  command: 'c_rehash'
+  when: cert_symlink.changed
 
 - name: Render /etc/conjur.conf
   template:
@@ -27,12 +38,12 @@
 
 - name: Request identity from Conjur
   uri:
-    url: "{{conjurize_appliance_url}}/host_factories/hosts?id={{conjurize_host_name}}"
+    url: "{{conjur_appliance_url}}/host_factories/hosts?id={{conjur_host_name}}"
     method: POST
     headers:
-      Authorization: Token token="{{conjurize_host_factory_token}}"
+      Authorization: Token token="{{conjur_host_factory_token}}"
     status_code: 201
-    validate_certs: no  # using a self-signed cert is coming in Ansible 2.3 - https://github.com/ansible/ansible/pull/18141
+    validate_certs: "{{conjur_validate_certs}}"  # using a self-signed cert is coming in Ansible 2.3 - https://github.com/ansible/ansible/pull/18141
   register: host_factory_response
 
 - name: Place identity file in /dev/shm

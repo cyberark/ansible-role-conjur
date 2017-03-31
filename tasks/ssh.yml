@@ -1,0 +1,15 @@
+---
+- name: Download Chef (required to set up Conjur SSH)
+  get_url:
+    url: "{{conjur_ssh_chef_url}}"
+    checksum: "{{conjur_ssh_chef_checksum}}"
+    dest: /tmp/chef.deb
+
+- name: Install Chef
+  apt:
+    deb: /tmp/chef.deb
+
+- name: Configure Conjur SSH
+  command: "chef-solo -r {{conjur_ssh_cookbook_url}} -o 'recipe[conjur::install],recipe[conjur::configure]'"
+  args:
+    creates: /opt/conjur/bin/conjur_authorized_keys
