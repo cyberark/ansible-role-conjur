@@ -36,25 +36,32 @@
     dest: /etc/conjur.conf
     mode: 0644
 
-- name: Request identity from Conjur
-  uri:
-    url: "{{conjur_appliance_url}}/host_factories/hosts?id={{conjur_host_name}}"
-    method: POST
-    headers:
-      Authorization: Token token="{{conjur_host_factory_token}}"
-    status_code: 201
-    validate_certs: "{{conjur_validate_certs}}"  # using a self-signed cert is coming in Ansible 2.3 - https://github.com/ansible/ansible/pull/18141
-  register: host_factory_response
+- name: Check if /etc/conjur.identity already exists
+  stat:
+    path: /etc/conjur.identity
+  register: identity_file
 
-- name: Place identity file in /dev/shm
-  template:
-    src: templates/conjur.identity.j2
-    dest: /dev/shm/conjur.identity
-    mode: 0640
-    group: conjur
+- block:
+  - name: Request identity from Conjur
+    uri:
+      url: "{{conjur_appliance_url}}/host_factories/hosts?id={{conjur_host_name}}"
+      method: POST
+      headers:
+        Authorization: Token token="{{conjur_host_factory_token}}"
+      status_code: 201
+      validate_certs: "{{conjur_validate_certs}}"  # using a self-signed cert is coming in Ansible 2.3 - https://github.com/ansible/ansible/pull/18141
+    register: host_factory_response
 
-- name: Symlink identity file to /etc/conjur.identity
-  file:
-    src: /dev/shm/conjur.identity
-    dest: /etc/conjur.identity
-    state: link
+  - name: Place identity file /etc/conjur.identity
+    template:
+      src: templates/conjur.identity.j2
+      dest: /dev/shm/conjur.identity
+      mode: 0640
+      group: conjur
+
+  - name: Symlink identity file to
+    file:
+      src: /dev/shm/conjur.identity
+      dest: /etc/conjur.identity
+      state: link
+  when: identity_file.stat.exists == False
