@@ -1,0 +1,23 @@
+- name: Check if /etc/conjur.identity already exists
+  stat:
+    path: /etc/conjur.identity
+  register: identity_file
+
+- name: Set fact "conjurized"
+  set_fact:
+    conjurized: "{{identity_file.stat.exists|bool}}"
+
+- name: Ensure all required variables are set
+  fail: msg="Variable '{{item}}' is not set!"
+  when: item == ''
+  with_items:
+    - conjur_account
+    - conjur_appliance_url
+    - conjur_ssl_certificate
+    - conjur_host_name
+
+- name: Ensure "conjur_host_factory_token" is set (if node is not already conjurized)
+  fail: msg="Variable '{{item}}' is not set!"
+  when:
+    - not conjurized
+    - conjur_host_factory_token == ''

@@ -1,13 +1,3 @@
-- name: Ensure all required variables are set
-  fail: msg="Variable '{{item}}' is not set!"
-  when: "{{item}} == ''"
-  with_items:
-    - conjur_account
-    - conjur_appliance_url
-    - conjur_host_factory_token
-    - conjur_ssl_certificate
-    - conjur_host_name
-
 - name: Create group conjur
   group:
     name: conjur
@@ -36,11 +26,6 @@
     dest: /etc/conjur.conf
     mode: 0644
 
-- name: Check if /etc/conjur.identity already exists
-  stat:
-    path: /etc/conjur.identity
-  register: identity_file
-
 - block:
   - name: Request identity from Conjur
     uri:
@@ -52,16 +37,16 @@
       validate_certs: "{{conjur_validate_certs}}"  # using a self-signed cert is coming in Ansible 2.3 - https://github.com/ansible/ansible/pull/18141
     register: host_factory_response
 
-  - name: Place identity file /etc/conjur.identity
+  - name: Place identity file /dev/shm/conjur.identity
     template:
       src: templates/conjur.identity.j2
       dest: /dev/shm/conjur.identity
       mode: 0640
       group: conjur
 
-  - name: Symlink identity file to
+  - name: Symlink identity file to /etc/conjur.identity
     file:
       src: /dev/shm/conjur.identity
       dest: /etc/conjur.identity
       state: link
-  when: identity_file.stat.exists == False
+  when: not conjurized
