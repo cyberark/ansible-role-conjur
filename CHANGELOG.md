@@ -1,8 +1,12 @@
 # CHANGELOG
 
+## 0.2.3
+
+- `/etc/conjur.identity` is no longer symlinked from `/dev/shm`. This is too opinionated.
+
 ## 0.2.2
 
-- Variable "conjur_host_factory_token" is no longer required when nodes are already conjurized.
+- Variable "conjur_host_factory_token" is no longer required when nodes are already conjurized
 
 ## 0.2.1
 
