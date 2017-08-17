@@ -10,6 +10,7 @@ trap finish EXIT
 function main() {
   createTestEnvironment
 	createHostFactoryToken
+	runAnsible
 }
 
 function createTestEnvironment() {
@@ -18,12 +19,12 @@ function createTestEnvironment() {
 
 #	docker-compose pull postgres conjur client todo: uncomment
 	docker-compose build --pull ansible
-	docker-compose up -d client postgres conjur
+	docker-compose up -d client postgres conjur ansible
 
 	# Delay to allow time for Conjur to come up
 	# TODO: remove this once we have HEALTHCHECK in place
 	echo 'Waiting for conjur to be healthy'
-  docker-compose run --rm ansible ./wait_for_server.sh
+  docker-compose run --rm --entrypoint bash ansible ./demo/wait_for_server.sh
 }
 
 function createHostFactoryToken() {
@@ -44,13 +45,24 @@ function createHostFactoryToken() {
     	conjur variable values add password mysecretpassword && \
 			export HFTOKEN=\$(conjur hostfactory tokens create --duration-days=365 ansible-factory | jq '.[0].token') && \
 			cat >conjurinc/ansible/output/output.sh << OUTPUT
+#!/usr/bin/env bash
 # Run the following in ansible-conjur-role...
 export HFTOKEN=\$HFTOKEN
-vagrant up
+#vagrant up
 # Now add the vagrant user to the conjur group and SSH into the vagrant machine.
-vagrant ssh -c \"sudo usermod -a -G conjur vagrant\" && vagrant ssh
-conjur variable value password
+#vagrant ssh -c \"sudo usermod -a -G conjur vagrant\" && vagrant ssh
+#conjur variable value password
 OUTPUT"
+
+		# The command above is untabbed to avoid here-document EOL
+}
+
+function runAnsible() {
+
+	ansible_cid=$(docker-compose ps -q ansible)
+
+	docker cp output ${ansible_cid}:/tmp
+	docker exec -it ${ansible_cid} /bin/bash
 }
 
 main

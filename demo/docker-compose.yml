@@ -29,8 +29,11 @@ services:
 
   ansible:
     build:
-      context: .
+      context: ../
+      dockerfile: /demo/Dockerfile
     container_name: ansible-runner
+    entrypoint: sleep
+    command: infinity
     ports:
       - "8080:8080"
     environment:

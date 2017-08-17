@@ -1,10 +1,12 @@
-FROM ubuntu:14.04
+FROM ansible/ansible:ubuntu1604
 
 MAINTAINER Conjur Inc
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
-		apt-get update && \
-    apt-get install -y curl
+apt-get update && \
+apt-get install -y curl && \
+pip install --upgrade pip && \
+pip install ansible
 
 RUN mkdir -p /conjurinc/ansible
 
