@@ -2,4 +2,5 @@
 .cache
 .vagrant
 *.retry
-test.sh
+.idea/*
+

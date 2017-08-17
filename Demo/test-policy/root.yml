@@ -1,0 +1,17 @@
+- !variable
+  id: password
+
+- !group security_admin
+
+- !layer &development development
+
+- !permit
+  resource: !variable password
+  privileges: [ execute ]
+  role: !layer development
+
+- !host-factory
+    id: ansible-factory
+    annotations:
+      description: Factory to create new hosts for ansible
+    layers: [ !layer development ]
