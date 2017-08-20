@@ -54,7 +54,3 @@ services:
     container_name: ansible-target
     entrypoint: sleep
     command: infinity
-    environment:
-      CONJUR_APPLIANCE_URL: http://conjur:3000
-      CONJUR_ACCOUNT: cucumber
-      CONJUR_AUTHN_LOGIN: admin
