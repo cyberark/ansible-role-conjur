@@ -20,12 +20,15 @@ services:
     entrypoint: sleep
     command: infinity
     volumes:
-      - ./output:/conjurinc/ansible/output
+      - ./client-output:/conjurinc/ansible/output
+      - ./test-policy:/conjurinc/ansible/test-policy
     environment:
       CONJUR_APPLIANCE_URL: http://conjur
       DATABASE_URL: postgres://postgres@postgres/postgres
       CONJUR_ACCOUNT: cucumber
       CONJUR_AUTHN_LOGIN: admin
+    depends_on:
+      - conjur
 
   ansible:
     build:
