@@ -25,24 +25,13 @@ services:
     entrypoint: sleep
     command: infinity
     volumes:
-      - ./client-output:/conjurinc/ansible/output
-      - ./policies:/conjurinc/ansible/policies
+      - ./:/conjurinc/ansible/
     environment:
       CONJUR_APPLIANCE_URL: http://conjur:3000
       CONJUR_ACCOUNT: cucumber
       CONJUR_AUTHN_LOGIN: admin
     depends_on:
       - conjur
-
-  ansible:
-    build:
-      context: ../
-      dockerfile: /demo/Dockerfile
-    container_name: ansible-runner
-    entrypoint: sleep
-    command: infinity
-    environment:
-      CONJUR_APPLIANCE_URL: http://conjur:3000
 
   target:
     image: cloudfoundry/trusty64

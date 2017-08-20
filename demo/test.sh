@@ -18,13 +18,13 @@ function createTestEnvironment() {
   echo '-----'
 
 	docker-compose pull postgres conjur client target
-	docker-compose build --pull ansible
-	docker-compose up -d client postgres conjur ansible target
+	docker-compose up -d client postgres conjur target
+
 
 	# Delay to allow time for Conjur to come up
 	# TODO: remove this once we have HEALTHCHECK in place
 	echo 'Waiting for conjur to be healthy'
-  docker-compose run --rm --entrypoint bash ansible ./demo/wait_for_server.sh
+  docker-compose run --entrypoint bash client /conjurinc/ansible/wait_for_server.sh
 }
 
 function createHostFactoryToken() {
@@ -39,7 +39,7 @@ function createHostFactoryToken() {
     /bin/bash -c "conjur policy load root /conjurinc/ansible/policies/root.yml && \
     	conjur variable values add password mysecretpassword && \
 			export HFTOKEN=\$(conjur hostfactory tokens create --duration-days=365 ansible-factory | jq '.[0].token') && \
-			cat >conjurinc/ansible/output/hftoken.txt << OUTPUT
+			cat >conjurinc/ansible/client-output/hftoken.txt << OUTPUT
 \$HFTOKEN
 OUTPUT"
 
@@ -48,8 +48,11 @@ OUTPUT"
 
 function runAnsible() {
 
-	docker exec -e HFTOKEN=$(<client-output/hftoken.txt) \
-		-it ansible-runner /bin/bash -c "env | grep HFTOKEN"
+	export HFTOKEN=$(<client-output/hftoken.txt)
+
+	env | grep HFTOKEN
+
+
 }
 
 main
