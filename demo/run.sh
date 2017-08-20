@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
 function finish {
-  echo 'Removing test environment'
+  echo 'Removing demo environment'
   echo '-----'
   docker-compose down -v
 }
 trap finish EXIT
 
 function main() {
-  createTestEnvironment
+  createDemoEnvironment
 	createHostFactoryToken
 	runAnsible
 }
 
-function createTestEnvironment() {
-  echo "Creating test environment"
+function createDemoEnvironment() {
+  echo "Creating demo environment"
   echo '-----'
 
 	docker-compose pull postgres conjur client target
@@ -38,7 +38,7 @@ function createHostFactoryToken() {
 		ansible-conjur-client \
     /bin/bash -c "conjur policy load root /conjurinc/ansible/policies/root.yml && \
     	conjur variable values add password mysecretpassword && \
-			export HFTOKEN=\$(conjur hostfactory tokens create --duration-days=365 ansible-factory | jq '.[0].token') && \
+			export HFTOKEN=\$(conjur hostfactory tokens create --duration-days=365 ansible-factory | jq -r '.[0].token') && \
 			cat >conjurinc/ansible/client-output/hftoken.txt << OUTPUT
 \$HFTOKEN
 OUTPUT"
@@ -47,12 +47,14 @@ OUTPUT"
 }
 
 function runAnsible() {
+  echo "Running Ansible playbook"
+  echo '-----'
 
 	export HFTOKEN=$(<client-output/hftoken.txt)
 
-	env | grep HFTOKEN
-
-
+	cd ..
+	ansible-playbook docker.yml
+	cd demo
 }
 
 main
