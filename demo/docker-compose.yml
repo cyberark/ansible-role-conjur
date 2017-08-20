@@ -8,9 +8,14 @@ services:
     image: registry.tld/possum:0.1.0-stable
     container_name: ansible-conjur
     command: server -a cucumber
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       DATABASE_URL: postgres://postgres@postgres/postgres
       CONJUR_DATA_KEY: "W0BuL8iTr/7QvtjIluJbrb5LDAnmXzmcpxkqihO3dXA="
+      PORT: 3000
     depends_on:
       - postgres
 
@@ -23,7 +28,7 @@ services:
       - ./client-output:/conjurinc/ansible/output
       - ./test-policy:/conjurinc/ansible/test-policy
     environment:
-      CONJUR_APPLIANCE_URL: http://conjur
+      CONJUR_APPLIANCE_URL: http://conjur:3000
       DATABASE_URL: postgres://postgres@postgres/postgres
       CONJUR_ACCOUNT: cucumber
       CONJUR_AUTHN_LOGIN: admin
@@ -40,6 +45,16 @@ services:
     ports:
       - "8080:8080"
     environment:
-      CONJUR_APPLIANCE_URL: http://conjur
+      CONJUR_APPLIANCE_URL: http://conjur:3000
+      CONJUR_ACCOUNT: cucumber
+      CONJUR_AUTHN_LOGIN: admin
+
+  target:
+    image: cloudfoundry/trusty64
+    container_name: ansible-target
+    entrypoint: sleep
+    command: infinity
+    environment:
+      CONJUR_APPLIANCE_URL: http://conjur:3000
       CONJUR_ACCOUNT: cucumber
       CONJUR_AUTHN_LOGIN: admin

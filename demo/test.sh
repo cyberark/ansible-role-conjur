@@ -17,9 +17,9 @@ function createTestEnvironment() {
   echo "Creating test environment"
   echo '-----'
 
-	docker-compose pull postgres conjur client todo: uncomment
+	docker-compose pull postgres conjur client target
 	docker-compose build --pull ansible
-	docker-compose up -d client postgres conjur ansible
+	docker-compose up -d client postgres conjur ansible target
 
 	# Delay to allow time for Conjur to come up
 	# TODO: remove this once we have HEALTHCHECK in place
