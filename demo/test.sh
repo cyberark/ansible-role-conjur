@@ -36,7 +36,7 @@ function createHostFactoryToken() {
 
 	docker exec -e CONJUR_AUTHN_API_KEY=${api_key} \
 		ansible-conjur-client \
-    /bin/bash -c "conjur policy load root /conjurinc/ansible/test-policy/root.yml && \
+    /bin/bash -c "conjur policy load root /conjurinc/ansible/policies/root.yml && \
     	conjur variable values add password mysecretpassword && \
 			export HFTOKEN=\$(conjur hostfactory tokens create --duration-days=365 ansible-factory | jq '.[0].token') && \
 			cat >conjurinc/ansible/output/hftoken.txt << OUTPUT
@@ -49,7 +49,7 @@ OUTPUT"
 function runAnsible() {
 
 	docker exec -e HFTOKEN=$(<client-output/hftoken.txt) \
-		-it ansible-runner /bin/bash
+		-it ansible-runner /bin/bash -c "env | grep HFTOKEN"
 }
 
 main
