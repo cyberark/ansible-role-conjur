@@ -34,7 +34,9 @@ services:
       - conjur
 
   target:
-    image: cloudfoundry/trusty64
+    build:
+      context: .
+      dockerfile: Dockerfile.target
     container_name: ansible-target
     entrypoint: sleep
     command: infinity

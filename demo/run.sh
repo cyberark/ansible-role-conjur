@@ -8,25 +8,41 @@ function finish {
 trap finish EXIT
 
 function main() {
+  echo '-----'
+  echo '----------'
+  echo '---------------'
+  echo "Starting Ansible demo for Conjur"
+  echo '---------------'
+  echo '----------'
+  echo '-----'
+
   createDemoEnvironment
+  waitForServer
 	createHostFactoryToken
 	runAnsible
+	RetrieveSecretInTarget
 }
 
 function createDemoEnvironment() {
   echo "Creating demo environment"
   echo '-----'
 
-	docker-compose pull postgres conjur client target
+	docker-compose build --pull target
+	docker-compose pull postgres conjur client
 	docker-compose up -d client postgres conjur target
 
-
-	# Delay to allow time for Conjur to come up
-	# TODO: remove this once we have HEALTHCHECK in place
-	echo 'Waiting for conjur to be healthy'
-  docker-compose run --entrypoint bash client /conjurinc/ansible/wait_for_server.sh
+	echo '-----'
 }
 
+function waitForServer() {
+	echo 'Waiting for conjur to be healthy'
+	echo '-----'
+
+	# TODO: remove this once we have HEALTHCHECK in place
+  docker-compose run --entrypoint bash client /conjurinc/ansible/wait_for_server.sh
+
+	echo '-----'
+}
 function createHostFactoryToken() {
   echo "Creating Conjur host factory token"
   echo '-----'
@@ -44,6 +60,8 @@ function createHostFactoryToken() {
 OUTPUT"
 
 		# The command above is untabbed to avoid here-document EOL
+
+	echo '-----'
 }
 
 function runAnsible() {
@@ -52,9 +70,19 @@ function runAnsible() {
 
 	export HFTOKEN=$(<client-output/hftoken.txt)
 
-	cd ..
-	ansible-playbook docker.yml
-	cd demo
+	ansible-playbook demo.yml
+
+  echo '-----'
+}
+
+function RetrieveSecretInTarget() {
+	echo "Fetching secret in target container"
+  echo '-----'
+
+	docker exec ansible-target bash -c "echo Conjur identity is: && conjur authn whoami && echo && echo Conjur secret is: \
+		&& conjur variable value password && echo"
+
+	echo '-----'
 }
 
 main
