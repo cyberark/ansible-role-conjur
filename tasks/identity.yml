@@ -29,10 +29,12 @@
 - block:
   - name: Request identity from Conjur
     uri:
-      url: "{{conjur_appliance_url}}/host_factories/hosts?id={{conjur_host_name}}"
+      url: "{{conjur_appliance_url}}/host_factories/hosts"
       method: POST
+      body: "id={{conjur_host_name}}"
       headers:
         Authorization: Token token="{{conjur_host_factory_token}}"
+        Content-Type: "application/x-www-form-urlencoded"
       status_code: 201
       validate_certs: "{{conjur_validate_certs}}"  # using a self-signed cert is coming in Ansible 2.3 - https://github.com/ansible/ansible/pull/18141
     register: host_factory_response
