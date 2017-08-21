@@ -3,4 +3,3 @@ FROM conjurinc/cli5
 RUN apt-get update && \
 	apt-get install -y apt-utils sudo && \
 	rm -rf /var/lib/apt/lists/*
-

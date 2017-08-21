@@ -5,7 +5,7 @@ services:
     container_name: ansible-postgres
 
   conjur:
-    image: registry.tld/possum:0.1.0-stable
+    image: cyberark/conjur:0.1.0-stable
     container_name: ansible-conjur
     command: server -a cucumber
     ports:
