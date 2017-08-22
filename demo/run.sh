@@ -74,7 +74,7 @@ function runAnsible() {
   echo '-----'
 }
 
-function RetrieveSecretInTarget() {
+function retrieveSecretInTarget() {
   echo "Fetching secret in target container"
   echo '-----'
 
@@ -82,6 +82,8 @@ function RetrieveSecretInTarget() {
     && conjur variable value password && echo"
 
   echo '-----'
+
+  docker exec -i ansible-target bash < summon.sh
 }
 
 main
