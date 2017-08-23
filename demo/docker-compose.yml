@@ -25,7 +25,7 @@ services:
     entrypoint: sleep
     command: infinity
     volumes:
-      - ./:/conjurinc/ansible/
+      - ./conjur-client-files:/conjurinc/ansible/
     environment:
       CONJUR_APPLIANCE_URL: http://conjur:3000
       CONJUR_ACCOUNT: cucumber
@@ -38,5 +38,15 @@ services:
       context: .
       dockerfile: Dockerfile.target
     container_name: ansible-target
+    entrypoint: sleep
+    command: infinity
+    volumes:
+      - ./ansible-target-files:/conjurinc/ansible/
+
+  lookup-target:
+    build:
+      context: .
+      dockerfile: Dockerfile.lookup-target
+    container_name: ansible-lookup-target
     entrypoint: sleep
     command: infinity

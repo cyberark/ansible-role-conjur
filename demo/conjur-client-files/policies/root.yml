@@ -1,0 +1,31 @@
+- !variable
+  id: target-password
+
+- !layer &development development
+
+- !permit
+  resource: !variable target-password
+  privileges: [ execute ]
+  role: !layer development
+
+- !host-factory
+    id: ansible-factory
+    annotations:
+      description: Factory to create new hosts for ansible
+    layers: [ !layer development ]
+
+- !variable
+  id: ansible-master-password
+
+- !host ansible-master
+
+- !group ansible-admins
+
+- !permit
+  resource: !variable ansible-master-password
+  privileges: [ execute ]
+  role: !group ansible-admins
+
+- !grant
+  role: !group ansible-admins
+  member: !host ansible-master
