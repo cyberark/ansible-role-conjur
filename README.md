@@ -1,9 +1,17 @@
-Conjur Role
+ansible-role-conjur
 =========
 
 This role configures a host with a Conjur identity. Based on that identity, secrets
 can be retrieved securely.
 
+Installation
+------------
+
+The Conjur role can be installed using the following:
+
+```sh
+$ ansible-galaxy install cyberark.conjur
+```
 
 Requirements
 ------------
@@ -49,12 +57,35 @@ Provide secret retrieval:
 ```yml
 - hosts: webservers
   vars:
-    super_secret_key: {{ lookup('conjur', 'path/to/secret')}} 
+    super_secret_key: {{ lookup('conjur', 'path/to/secret') }}
     max_clients: 200
   remote_user: root
   tasks:
     ...
 ```
+
+Provide secret (Summon style):
+```yml
+- hosts: webservers
+  tasks:
+    - name: ensure app Foo is running
+      conjur_application:
+        run:
+          command: rails s
+          args:
+            chdir: /foo/app
+        variables:
+          - SECRET_KEY: /path/to/secret-key
+          - SECRET_PASSWORD: /path/to/secret_password
+```
+The above example uses the variables defined in `variables` block to map environment
+variables to Conjur variables. The above case would result in the following being
+executed on the remote node:
+```sh
+$ cd /foo/app && SECRET_KEY=topsecretkey SECRET_PASSWORD=topsecretpassword rails s
+```
+The `run` block can take the input of any Ansible module. This provides a simple
+mechanism for applying credentials to a process based on that machine's identity.
 
 
 License
