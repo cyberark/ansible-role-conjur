@@ -20,7 +20,7 @@ function main() {
   waitForServer
   createHostFactoryToken
   runAnsible
-  RetrieveSecretInTarget
+  retrieveSecretInTarget
 }
 
 function createDemoEnvironment() {
