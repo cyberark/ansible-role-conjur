@@ -3,5 +3,4 @@
 .vagrant
 *.retry
 .idea/*
-demo/client-output/*
 *.iml

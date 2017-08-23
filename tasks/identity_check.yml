@@ -1,3 +1,4 @@
+---
 - name: Check if /etc/conjur.identity already exists
   stat:
     path: /etc/conjur.identity
