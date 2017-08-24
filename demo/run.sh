@@ -20,7 +20,8 @@ function main() {
   waitForServer
   createHostFactoryToken
   conjurizeTargetContainer
-  RetrieveSecretInTarget
+  RetrieveSecretInTargetWithCli
+  RetrieveSecretInTargetWithSummon
   RetrieveSecretWithPlugin
 }
 
@@ -69,12 +70,16 @@ function conjurizeTargetContainer() {
   ansible-playbook conjurize-container.yml
 }
 
-function RetrieveSecretInTarget() {
+function RetrieveSecretInTargetWithCli() {
   echo '-----'
   echo "Retrieving secret in target container with Conjur cli"
   echo '-----'
 
-  docker exec ansible-target bash -c /conjurinc/ansible/retreive_secrets_in_target.sh
+  docker exec ansible-target bash -c /conjurinc/ansible/conjur_cli.sh
+}
+
+function RetrieveSecretInTargetWithSummon() {
+  docker exec ansible-target bash -c /conjurinc/ansible/summon.sh
 }
 
 function RetrieveSecretWithPlugin() {
@@ -88,15 +93,9 @@ function RetrieveSecretWithPlugin() {
 
   ansible-playbook conjur-plugin.yml
 
-  echo '-----'
-  echo "Receiving secret inside target container from the lookup plugin variable"
-  echo '-----'
-
   docker exec ansible-lookup-target bash -c "cat conjur_variable.txt && echo"
 
   echo '-----'
-
-  docker exec -i ansible-target bash < summon.sh
 }
 
 main
