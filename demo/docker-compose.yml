@@ -33,20 +33,20 @@ services:
     depends_on:
       - conjur
 
-  target:
+  ansible-role-conjur-test:
     build:
       context: .
-      dockerfile: Dockerfile.target
-    container_name: ansible-target
+      dockerfile: Dockerfile.cli-target
+    container_name: ansible-cli-target
     entrypoint: sleep
     command: infinity
     volumes:
       - ./ansible-target-files:/conjurinc/ansible/
 
-  lookup-target:
+  ansible-lookup-plugin-test:
     build:
       context: .
-      dockerfile: Dockerfile.lookup-target
-    container_name: ansible-lookup-target
+      dockerfile: Dockerfile.clean-target
+    container_name: ansible-lookup-plugin-test
     entrypoint: sleep
     command: infinity

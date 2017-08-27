@@ -29,9 +29,9 @@ function createDemoEnvironment() {
   echo "Creating demo environment"
   echo '-----'
 
-  docker-compose build --pull target lookup-target
+  docker-compose build --pull ansible-role-conjur-test ansible-lookup-plugin-test
   docker-compose pull postgres conjur client
-  docker-compose up -d client postgres conjur target lookup-target
+  docker-compose up -d client postgres conjur ansible-role-conjur-test ansible-lookup-plugin-test
 }
 
 function waitForServer() {
@@ -58,14 +58,14 @@ function createHostFactoryToken() {
     --entrypoint bash \
     client \
     /conjurinc/ansible/create_host_token.sh
-
-  export HFTOKEN=$(<conjur-client-files/output/hftoken.txt)
 }
 
 function conjurizeTargetContainer() {
   echo '-----'
   echo "Conjurizing the target container with Ansible"
   echo '-----'
+
+  export HFTOKEN=$(<conjur-client-files/output/hftoken.txt)
 
   ansible-playbook conjurize-container.yml
 }
@@ -75,11 +75,11 @@ function RetrieveSecretInTargetWithCli() {
   echo "Retrieving secret in target container with Conjur cli"
   echo '-----'
 
-  docker exec ansible-target bash -c /conjurinc/ansible/conjur_cli.sh
+  docker exec ansible-cli-target bash -c /conjurinc/ansible/conjur_cli.sh
 }
 
 function RetrieveSecretInTargetWithSummon() {
-  docker exec ansible-target bash -c /conjurinc/ansible/summon.sh
+  docker exec ansible-cli-target bash -c /conjurinc/ansible/summon.sh
 }
 
 function RetrieveSecretWithPlugin() {
@@ -87,13 +87,18 @@ function RetrieveSecretWithPlugin() {
   echo "Retrieving secret with conjur_variable lookup plugin"
   echo '-----'
 
-#  todo - remove once the machine can be conjurized with /etc privileges
-  api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible-master'].api_key")
+  # this is instead of conjurizing host machine
+  export CONJUR_ACCOUNT=cucumber
+  export CONJUR_APPLIANCE_URL=http://127.0.0.1:3000
+  export CONJUR_CERT_FILE=demo.pem
+  export CONJUR_AUTHN_LOGIN=host/ansible/ansible-master
+
+  api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-master'].api_key")
   export CONJUR_AUTHN_API_KEY=${api_key}
 
   ansible-playbook conjur-plugin.yml
 
-  docker exec ansible-lookup-target bash -c "cat conjur_variable.txt && echo"
+  docker exec ansible-clean-target bash -c "cat conjur_variable.txt && echo"
 
   echo '-----'
 }
