@@ -33,6 +33,24 @@ services:
     depends_on:
       - conjur
 
+  conjur-proxy-nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    entrypoint: nginx-debug -g 'daemon off;'
+    container_name: ansible-conjur-proxy
+    environment:
+        TERM: xterm
+    ports:
+    - "8080:80"
+    - "8443:443"
+    expose:
+      - "8080"
+      - "8443"
+    depends_on:
+      - conjur
+      - client
+
   target:
     build:
       context: .

@@ -11,7 +11,7 @@
   roles:
     - role: ansible-role-conjur
       conjur_account: cucumber
-      conjur_appliance_url: 'http://conjur:3000'
+      conjur_appliance_url: 'https://conjur-proxy-nginx'
       conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}"
       conjur_ssl_certificate: "{{lookup('file', './demo.pem')}}"
       conjur_host_name: 'test1234567890'
