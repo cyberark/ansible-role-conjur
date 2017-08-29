@@ -91,7 +91,7 @@ function RetrieveSecretInMaster() {
   # Adding ansible-master identity & conf instead of conjurizing host machine
   export CONJUR_ACCOUNT=cucumber
   export CONJUR_APPLIANCE_URL=http://127.0.0.1:3000
-  export CONJUR_CERT_FILE=demo.pem
+  export CONJUR_CERT_FILE=conjur.pem
   export CONJUR_AUTHN_LOGIN=host/ansible/ansible-master
 
   api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-master'].api_key")

@@ -36,7 +36,7 @@ services:
   conjurized-container-test:
     build:
       context: .
-      dockerfile: Dockerfile.cli-target
+      dockerfile: Dockerfile.cli-summon-target
     container_name: conjurized-container-test
     entrypoint: sleep
     command: infinity
