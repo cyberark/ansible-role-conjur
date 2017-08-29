@@ -19,35 +19,34 @@ function main() {
   createDemoEnvironment
   waitForServer
   createHostFactoryToken
-  runAnsible
-  retrieveSecretInTarget
+  conjurizeTargetContainer
+  RetrieveSecretInTargetWithCli
+  RetrieveSecretInTargetWithSummon
+  RetrieveSecretWithPlugin
 }
 
 function createDemoEnvironment() {
   echo "Creating demo environment"
   echo '-----'
 
-  docker-compose build --pull target
+  docker-compose build --pull ansible-role-conjur-test ansible-lookup-plugin-test
   docker-compose pull postgres conjur client
-  docker-compose up -d client postgres conjur target
-
-  echo '-----'
+  docker-compose up -d client postgres conjur ansible-role-conjur-test ansible-lookup-plugin-test
 }
 
 function waitForServer() {
-  echo 'Waiting for conjur server to be healthy'
   echo '-----'
+  echo 'Waiting for conjur server to be healthy'
 
   # TODO: remove this once we have HEALTHCHECK in place
   docker-compose run \
     --entrypoint bash \
     client \
     /conjurinc/ansible/wait_for_server.sh
-
-  echo '-----'
 }
 
 function createHostFactoryToken() {
+  echo '-----'
   echo "Creating Conjur host factory token"
   echo '-----'
 
@@ -59,31 +58,49 @@ function createHostFactoryToken() {
     --entrypoint bash \
     client \
     /conjurinc/ansible/create_host_token.sh
-
-  echo '-----'
 }
 
-function runAnsible() {
-  echo "Running Ansible playbook"
+function conjurizeTargetContainer() {
+  echo '-----'
+  echo "Conjurizing the target container with Ansible"
   echo '-----'
 
-  export HFTOKEN=$(<client-output/hftoken.txt)
+  export HFTOKEN=$(<conjur-client-files/output/hftoken.txt)
 
-  ansible-playbook demo.yml
-
-  echo '-----'
+  ansible-playbook conjurize-container.yml
 }
 
-function retrieveSecretInTarget() {
-  echo "Fetching secret in target container"
+function RetrieveSecretInTargetWithCli() {
+  echo '-----'
+  echo "Retrieving secret in target container with Conjur cli"
   echo '-----'
 
-  docker exec ansible-target bash -c "echo Conjur identity is: && conjur authn whoami && echo && echo Conjur secret is: \
-    && conjur variable value password && echo"
+  docker exec ansible-cli-target bash -c /conjurinc/ansible/conjur_cli.sh
+}
 
+function RetrieveSecretInTargetWithSummon() {
+  docker exec ansible-cli-target bash -c /conjurinc/ansible/summon.sh
+}
+
+function RetrieveSecretWithPlugin() {
+  echo '-----'
+  echo "Retrieving secret with conjur_variable lookup plugin"
   echo '-----'
 
-  docker exec -i ansible-target bash < summon.sh
+  # this is instead of conjurizing host machine
+  export CONJUR_ACCOUNT=cucumber
+  export CONJUR_APPLIANCE_URL=http://127.0.0.1:3000
+  export CONJUR_CERT_FILE=demo.pem
+  export CONJUR_AUTHN_LOGIN=host/ansible/ansible-master
+
+  api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-master'].api_key")
+  export CONJUR_AUTHN_API_KEY=${api_key}
+
+  ansible-playbook conjur-plugin.yml
+
+  docker exec ansible-clean-target bash -c "cat conjur_variable.txt && echo"
+
+  echo '-----'
 }
 
 main
