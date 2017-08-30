@@ -25,7 +25,7 @@ services:
     entrypoint: sleep
     command: infinity
     volumes:
-      - ./:/conjurinc/ansible/
+      - ./conjur-client-files:/conjurinc/ansible/
     environment:
       CONJUR_APPLIANCE_URL: http://conjur:3000
       CONJUR_ACCOUNT: cucumber
@@ -33,10 +33,20 @@ services:
     depends_on:
       - conjur
 
-  target:
+  conjurized-container-test:
     build:
       context: .
-      dockerfile: Dockerfile.target
-    container_name: ansible-target
+      dockerfile: Dockerfile.cli-summon-target
+    container_name: conjurized-container-test
+    entrypoint: sleep
+    command: infinity
+    volumes:
+      - ./ansible-target-files:/conjurinc/ansible/
+
+  non-conjurized-container-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.clean-target
+    container_name: non-conjurized-container-test
     entrypoint: sleep
     command: infinity
