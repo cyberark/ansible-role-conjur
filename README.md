@@ -117,6 +117,10 @@ The advantage to this approach is that it removes a machine (or machines) from h
 
 It is worth noting that moving identity out to remote machines will most likely require a small amount of rework of current playbooks.  We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms of flexibility and security moving forward.
 
+**Known issues**
+* When running `ansible-playbook -v playbook.yml` all the facts will be printed to the logs, so we need to add the the play `no_log: true`.
+* The facts can be accessed from another play, from the same playbook or from external playbook (using include)
+
 
 License
 -------
