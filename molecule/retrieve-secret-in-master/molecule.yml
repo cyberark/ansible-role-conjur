@@ -10,7 +10,7 @@ platforms:
     entrypoint: sleep
     command: infinity
     networks:
-      - name: tests_conjur-ansible-test
+      - name: ansibleroleconjur_default
 scenario:
   name: retrieve-secret-in-master
   test_sequence:
@@ -33,4 +33,4 @@ provisioner:
     CONJUR_AUTHN_LOGIN: host/ansible/ansible-master
   config_options:
     defaults:
-      lookup_plugins: ../../../lookup_plugins
+      lookup_plugins: ../../lookup_plugins

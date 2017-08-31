@@ -19,8 +19,8 @@ function main() {
   createDemoEnvironment
   waitForServer
   createHostFactoryToken
-#  testConjurizeContainer
-#  testRetrieveSecretInMaster
+  testConjurizeContainer
+  testRetrieveSecretInMaster
   testRetrieveSecretInRemote
 
 }
@@ -58,7 +58,7 @@ function createHostFactoryToken() {
     client \
     /conjurinc/ansible/create_host_token.sh
 
-   export HFTOKEN=$(<conjur-client-files/output/hftoken.txt)
+   export HFTOKEN=$(<test-files/output/hftoken.txt)
 }
 
 function testConjurizeContainer() {
@@ -90,7 +90,6 @@ function testRetrieveSecretInRemote() {
   api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-custom-target'].api_key")
   export CONJUR_CUSTOM_AUTHN_API_KEY=${api_key}
 
-  docker exec -it a-test bash
   molecule test --scenario-name retrieve-secret-in-remote
 
   echo '-----'

@@ -1,9 +1,9 @@
 ---
-- name: Conjurize container
+- name: Converge
   hosts: conjurized-container
   become: true
   roles:
-    - role: conjurize-container
+    - role: ansible-role-conjur/conjurize-container
       conjur_account: cucumber
       conjur_appliance_url: "http://conjur:3000"
       conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}"

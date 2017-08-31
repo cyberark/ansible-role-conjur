@@ -10,7 +10,7 @@ platforms:
     entrypoint: sleep
     command: infinity
     networks:
-      - name: tests_conjur-ansible-test
+      - name: ansibleroleconjur_default
     volumes:
       - ./summon:/conjurinc/ansible/
 scenario:
@@ -26,3 +26,8 @@ verifier:
   name: testinfra
   lint:
     name: flake8
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      roles_path: ../../conjurize-container

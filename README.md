@@ -1,4 +1,4 @@
-conjurize-container
+ansible-role-conjur
 =========
 
 This role configures a host with a Conjur identity. Based on that identity, secrets
