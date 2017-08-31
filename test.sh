@@ -29,8 +29,8 @@ function createDemoEnvironment() {
   echo "Creating demo environment"
   echo '-----'
 
-  docker-compose pull postgres conjur client a-test
-  docker-compose up -d client postgres conjur a-test
+  docker-compose pull postgres conjur client
+  docker-compose up -d client postgres conjur
 }
 
 function waitForServer() {

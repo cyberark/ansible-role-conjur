@@ -30,9 +30,3 @@ services:
       CONJUR_AUTHN_LOGIN: admin
     depends_on:
       - conjur
-
-  a-test:
-    image: ubuntu:16.04
-    container_name: a-test
-    entrypoint: sleep
-    command: infinity
