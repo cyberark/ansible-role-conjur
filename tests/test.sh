@@ -19,20 +19,18 @@ function main() {
   createDemoEnvironment
   waitForServer
   createHostFactoryToken
-  conjurizeTargetContainer
-  RetrieveSecretInTargetWithCli
-  RetrieveSecretInTargetWithSummon
-  RetrieveSecretInMaster
-  RetrieveSecretInRemote
+#  testConjurizeContainer
+#  testRetrieveSecretInMaster
+  testRetrieveSecretInRemote
+
 }
 
 function createDemoEnvironment() {
   echo "Creating demo environment"
   echo '-----'
 
-  docker-compose build --pull conjurized-container-test non-conjurized-container-test
-  docker-compose pull postgres conjur client
-  docker-compose up -d client postgres conjur conjurized-container-test non-conjurized-container-test
+  docker-compose pull postgres conjur client a-test
+  docker-compose up -d client postgres conjur a-test
 }
 
 function waitForServer() {
@@ -59,59 +57,41 @@ function createHostFactoryToken() {
     --entrypoint sh \
     client \
     /conjurinc/ansible/create_host_token.sh
+
+   export HFTOKEN=$(<conjur-client-files/output/hftoken.txt)
 }
 
-function conjurizeTargetContainer() {
+function testConjurizeContainer() {
   echo '-----'
   echo "Conjurizing the target container with Ansible"
   echo '-----'
 
-  export HFTOKEN=$(<conjur-client-files/output/hftoken.txt)
-
-  ansible-playbook playbooks/conjurize-container.yml
+  molecule test --scenario-name conjurize-container
 }
 
-function RetrieveSecretInTargetWithCli() {
-  echo '-----'
-  echo "Retrieving secret in target container with Conjur cli"
-  echo '-----'
-
-  docker exec conjurized-container-test bash -c /conjurinc/ansible/conjur_cli.sh
-}
-
-function RetrieveSecretInTargetWithSummon() {
-  docker exec conjurized-container-test bash -c /conjurinc/ansible/summon.sh
-}
-
-function RetrieveSecretInMaster() {
+function testRetrieveSecretInMaster() {
   echo '-----'
   echo "Retrieving secret with ansible-master identity"
   echo '-----'
 
-  # Adding ansible-master identity & conf instead of conjurizing host machine
-  export CONJUR_ACCOUNT=cucumber
-  export CONJUR_APPLIANCE_URL=http://127.0.0.1:3000
-  export CONJUR_CERT_FILE=conjur.pem
-  export CONJUR_AUTHN_LOGIN=host/ansible/ansible-master
-
   api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-master'].api_key")
   export CONJUR_AUTHN_API_KEY=${api_key}
 
-  ansible-playbook playbooks/retrieve_secret_in_master.yml
-
-  docker exec non-conjurized-container-test bash -c "cat conjur_secrets.txt && echo"
+  molecule test --scenario-name retrieve-secret-in-master
 
   echo '-----'
 }
 
-function RetrieveSecretInRemote() {
+function testRetrieveSecretInRemote() {
   echo '-----'
   echo "Retrieving secret with conjurized target identity"
   echo '-----'
 
-  ansible-playbook playbooks/retrieve_secret_in_remote.yml
+  api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-custom-target'].api_key")
+  export CONJUR_CUSTOM_AUTHN_API_KEY=${api_key}
 
-  docker exec conjurized-container-test bash -c "cat conjur_secrets.txt && echo"
+  docker exec -it a-test bash
+  molecule test --scenario-name retrieve-secret-in-remote
 
   echo '-----'
 }

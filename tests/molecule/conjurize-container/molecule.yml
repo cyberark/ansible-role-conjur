@@ -1,0 +1,28 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: conjurized-container
+    image: conjurinc/cli5
+    dockercommands: true
+    entrypoint: sleep
+    command: infinity
+    networks:
+      - name: tests_conjur-ansible-test
+    volumes:
+      - ./summon:/conjurinc/ansible/
+scenario:
+  name: conjurize-container
+  test_sequence:
+    - destroy
+    - create
+    - converge
+#      - lint
+    - verify
+    - destroy
+verifier:
+  name: testinfra
+  lint:
+    name: flake8

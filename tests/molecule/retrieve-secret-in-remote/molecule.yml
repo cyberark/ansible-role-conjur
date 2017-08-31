@@ -1,0 +1,40 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: conjurized-container
+    image: conjurinc/cli5
+    dockercommands: true
+    entrypoint: sleep
+    command: infinity
+    networks:
+      - name: tests_conjur-ansible-test
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+  config_options:
+    defaults:
+      library: /Users/orenb/Code/temp/ansible-role-conjur/library
+#  env:
+#    CONJUR_ACCOUNT: cucumber
+#    CONJUR_APPLIANCE_URL: http://localhost:3000
+#    CONJUR_CERT_FILE: conjur.pem
+#    CONJUR_AUTHN_LOGIN: host/ansible/ansible-master
+scenario:
+  name: retrieve-secret-in-remote
+  test_sequence:
+    - destroy
+    - create
+    - converge
+    #      - lint
+    - verify
+    - destroy
+verifier:
+  name: testinfra
+  lint:
+    name: flake8

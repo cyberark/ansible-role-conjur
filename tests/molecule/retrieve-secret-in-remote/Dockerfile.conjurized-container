@@ -1,0 +1,10 @@
+
+RUN apt-get update && \
+  apt-get install -y \
+  apt-utils \
+  python \
+  python-apt \
+  python-yaml \
+  aptitude \
+  sudo && \
+  rm -rf /var/lib/apt/lists/*

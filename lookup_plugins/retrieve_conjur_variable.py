@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import os.path
-import ssl
 import yaml
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
@@ -100,7 +99,6 @@ def merge_dictionaries(*arg):
 
 
 class LookupModule(LookupBase):
-
     def retrieve_secrets(self, conf, conjur_https, token, terms):
 
         secrets = []
@@ -112,7 +110,9 @@ class LookupModule(LookupBase):
             conjur_https.request('GET', url, headers=headers)
             response = conjur_https.getresponse()
             if response.status != 200:
-                raise Exception('Failed to retrieve variable \'{}\' with response status: {} {}'.format(variable_name, response.status, response.reason))
+                raise Exception('Failed to retrieve variable \'{}\' with response status: {} {}'.format(variable_name,
+                                                                                                        response.status,
+                                                                                                        response.reason))
 
             secrets.append(response.read())
 
@@ -122,36 +122,42 @@ class LookupModule(LookupBase):
         try:
             # Load Conjur configuration
             # todo - is it ok to have the identity in more than one place? Do we want to change this? If not, what are the priorities?
-            conf = merge_dictionaries(
-                load_conf('/etc/conjur.conf')
-                # load_conf('~/.conjurrc')
-            )
-            if not conf:
-                if environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL') is not None and environ.get('CONJUR_CERT_FILE') is not None:
-                    conf = {
-                        "account": environ.get('CONJUR_ACCOUNT'),
-                        "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
-                        "cert_file": environ.get('CONJUR_CERT_FILE')
-                    }
-                else:
-                    exit_error('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
-
+            if environ.get('CONJUR_ACCOUNT') is not None and environ.get(
+                    'CONJUR_APPLIANCE_URL') is not None and environ.get('CONJUR_CERT_FILE') is not None:
+                conf = {
+                    "account": environ.get('CONJUR_ACCOUNT'),
+                    "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
+                    "cert_file": environ.get('CONJUR_CERT_FILE')
+                }
+            else:
+                os.system('echo {} >> /tmp/conjur_variable.txt'.format("else1---"))
+                conf = merge_dictionaries(
+                    load_conf('~/.conjurrc'),
+                    load_conf('/etc/conjur.conf')
+                )
+                if not conf:
+                    exit_error(
+                        'Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
+                os.system('echo {} >> /tmp/conjur_variable.txt'.format(conf))
             # Load Conjur identity
             # todo - is it ok to have the conf in more than one place? Do we want to change this? If not, what are the priorities?
-            identity = merge_dictionaries(
-                load_identity('/etc/conjur.identity', conf['appliance_url'])
-                # load_identity('~/.netrc', conf['appliance_url'])
-            )
-            if not identity:
-                if environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None:
-                    identity = {
-                        "id": environ.get('CONJUR_AUTHN_LOGIN'),
-                        "api_key": environ.get('CONJUR_AUTHN_API_KEY')
-                    }
-                else:
-                    exit_error('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
+            if environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None:
+                identity = {
+                    "id": environ.get('CONJUR_AUTHN_LOGIN'),
+                    "api_key": environ.get('CONJUR_AUTHN_API_KEY')
+                }
+            else:
+                identity = merge_dictionaries(
+                    load_identity('~/.netrc', conf['appliance_url']),
+                    load_identity('/etc/conjur.identity', conf['appliance_url'])
+                )
+                if not identity:
+                    exit_error(
+                        'Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-
+            os.system('echo {} >> /tmp/conjur_variable.txt'.format("inside---"))
+            os.system('echo {} >> /tmp/conjur_variable.txt'.format(identity))
+            os.system('echo {} >> /tmp/conjur_variable.txt'.format(conf))
             # Load our certificate for validation
             # ssl_context = ssl.create_default_context()
             # ssl_context.load_verify_locations(conf['cert_file'])

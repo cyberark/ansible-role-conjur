@@ -1,6 +1,22 @@
 ---
-- hosts: conjurized-container-test
+- name: Converge
+  hosts: conjurized-container
+  become: true
+  vars:
+    CONJUR_CUSTOM_AUTHN_API_KEY: "{{lookup('env', 'CONJUR_CUSTOM_AUTHN_API_KEY')}}"
   tasks:
+    - name: Render /etc/conjur.conf
+      template:
+        src: templates/conjur.conf.j2
+        dest: /etc/conjur.conf
+        mode: 0644
+
+    - name: Render /etc/conjur.identity
+      template:
+        src: templates/conjur.identity.j2
+        dest: /etc/conjur.identity
+        mode: 0644
+
     - name: Retrieve secrets with target identity
       retrieve_conjur_variable:
         variables:
@@ -8,8 +24,8 @@
           ANOTHER_RETRIEVED_PASSWORD: ansible/another-target-password
       register: result
 
-    - name: Do something with the secret {{result.secrets['RETRIEVED_PASSWORD']}}
-      shell: echo "ansible/target-password = {{result.secrets['RETRIEVED_PASSWORD']}}, ansible/another-target-password = {{result.secrets['ANOTHER_RETRIEVED_PASSWORD']}}" > ./conjur_secrets.txt
+    - name: Do something with the secret
+      shell: echo "{{result.secrets['RETRIEVED_PASSWORD']}},{{result.secrets['ANOTHER_RETRIEVED_PASSWORD']}}" > ./conjur_secrets.txt
 
 #    - name: Retrieve non existing secrets with target identity
 #      retrieve_conjur_variable:
@@ -28,3 +44,5 @@
 #
 #    - name: Do something with the secret
 #      shell: echo "ansible/target-password = {{result.secrets['RETRIEVED_PASSWORD']}}" > ./conjur_non_permitted_secrets.txt
+
+
