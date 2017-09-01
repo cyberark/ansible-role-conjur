@@ -116,6 +116,8 @@ function retrieveSecretInTarget() {
 
   echo '-----'
 
+  docker exec ansible-target mkdir -p /usr/local/lib/summon
+  docker cp summon-conjur ansible-target:/usr/local/lib/summon/summon-conjur
   docker exec -i ansible-target bash < summon.sh
 }
 
