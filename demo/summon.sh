@@ -26,7 +26,7 @@ function InstallSummon() {
     echo "Downloading & installing summon at /usr/local/bin"
     wget -qO- https://github.com/cyberark/summon/releases/download/v0.6.5/summon-linux-amd64.tar.gz | tar xvz -C /usr/local/bin
     echo "Downloading & installing summon-conjur at /usr/local/lib/summon"
-#   already presented in the directory (beta)
+#   binary already present in the directory (beta)
     echo '-----'
 
 }
