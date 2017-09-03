@@ -12,6 +12,8 @@ RUN apt-get update && \
 
 RUN mkdir -p /usr/local/lib/summon \
   && \
-  wget -qO- https://github.com/cyberark/summon/releases/download/v0.6.5/summon-linux-amd64.tar.gz | tar xvz -C /usr/local/bin \
-  && \
-  wget -qO- https://github.com/cyberark/summon-conjur/releases/download/v0.3.0/summon-conjur-linux-amd64.tar.gz | tar xvz -C /usr/local/lib/summon
+  wget -qO- https://github.com/cyberark/summon/releases/download/v0.6.5/summon-linux-amd64.tar.gz | tar xvz -C /usr/local/bin
+
+#summon-conjur Beta version
+COPY conjur-client-files/summon-conjur /usr/local/lib/summon/
+
