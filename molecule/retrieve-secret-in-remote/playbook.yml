@@ -3,6 +3,8 @@
   hosts: conjurized-container
   become: true
   vars:
+    CONJUR_ACCOUNT: cucumber
+    CONJUR_APPLIANCE_URL: http://conjur:3000
     CONJUR_CUSTOM_AUTHN_API_KEY: "{{lookup('env', 'CONJUR_CUSTOM_AUTHN_API_KEY')}}"
   tasks:
     - name: Render /etc/conjur.conf
