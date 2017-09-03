@@ -16,8 +16,10 @@
     dest: /etc/ssl/certs/conjur.crt
     state: link
   register: cert_symlink
-  notify:
-    - Rehash certs
+
+- name: Rehash certs
+  command: 'c_rehash'
+  when: cert_symlink.changed
 
 - name: Render /etc/conjur.conf
   template:

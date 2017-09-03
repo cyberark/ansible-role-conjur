@@ -1,3 +1,0 @@
----
-- name: Rehash certs
-  command: 'c_rehash'
