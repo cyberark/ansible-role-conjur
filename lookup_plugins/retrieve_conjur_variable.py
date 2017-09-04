@@ -4,7 +4,7 @@ import os.path
 import ssl
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
-from httplib import HTTPConnection
+from httplib import HTTPSConnection
 from netrc import netrc
 from os import environ
 from sys import stderr
@@ -156,10 +156,10 @@ class LookupModule(LookupBase):
 
 
             # Load our certificate for validation
-            # ssl_context = ssl.create_default_context()
-            # ssl_context.load_verify_locations(conf['cert_file'])
-            conjur_https = HTTPConnection(urlparse(conf['appliance_url']).netloc)
-            # todo orenbm: change to https
+            ssl_context = ssl.create_default_context()
+            ssl_context.load_verify_locations(conf['cert_file'])
+            conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+                                           context = ssl_context)
 
             token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
 
