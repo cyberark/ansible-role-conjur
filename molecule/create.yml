@@ -8,21 +8,22 @@
     molecule_file: "{{ lookup('env', 'MOLECULE_FILE') }}"
     molecule_ephemeral_directory: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}"
     molecule_scenario_directory: "{{ lookup('env', 'MOLECULE_SCENARIO_DIRECTORY') }}"
+    molecule_templates_directory: "{{ lookup('env', 'MOLECULE_SCENARIO_DIRECTORY') }}/../templates"
     molecule_yml: "{{ lookup('file', molecule_file) | from_yaml }}"
   tasks:
     - name: Create Dockerfiles from image names
       template:
-        src: "{{ molecule_scenario_directory }}/Dockerfile.j2"
+        src: "{{ molecule_templates_directory }}/Dockerfile.j2"
         dest: "{{ molecule_ephemeral_directory }}/Dockerfile_{{ item.name | regex_replace('[^a-zA-Z0-9_]', '_') }}"
       with_items: "{{ molecule_yml.platforms }}"
       register: platforms
 
     - name: Add commands to Dockerfile
       blockinfile:
-        path: "{{ molecule_ephemeral_directory }}/Dockerfile_{{ item.name | regex_replace('[^a-zA-Z0-9_]', '_') }}"
-        block: "{{ lookup('file', './Dockerfile.{{ item.name }}') }}"
-      with_items: "{{ molecule_yml.platforms }}"
-      when: item.dockercommands is defined
+        path: "{{ molecule_ephemeral_directory }}/Dockerfile_{{ item.item.name | regex_replace('[^a-zA-Z0-9_]', '_') }}"
+        block: "{{ lookup('file', '{{ molecule_templates_directory }}/Dockerfile.{{ item.item.name }}') }}"
+      with_items: "{{ platforms.results }}"
+      when: item.item.dockercommands is defined
 
     - name: Discover local Docker images
       docker_image_facts:

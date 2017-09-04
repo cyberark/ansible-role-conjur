@@ -11,19 +11,6 @@ platforms:
     command: infinity
     networks:
       - name: ansibleroleconjur_default
-scenario:
-  name: retrieve-secret-in-master
-  test_sequence:
-      - destroy
-      - create
-      - converge
-#      - lint
-      - verify
-      - destroy
-verifier:
-  name: testinfra
-  lint:
-    name: flake8
 provisioner:
   name: ansible
   env:
@@ -34,3 +21,20 @@ provisioner:
   config_options:
     defaults:
       lookup_plugins: ../../lookup_plugins
+  playbooks:
+    create: ../create.yml
+    destroy: ../destroy.yml
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+    options:
+      config-file: ../.flake8
+scenario:
+  name: retrieve-secret-in-master
+  test_sequence:
+      - destroy
+      - create
+      - converge
+      - verify
+      - destroy

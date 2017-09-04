@@ -66,7 +66,7 @@ function testConjurizeContainer() {
   echo "Conjurizing the target container with Ansible"
   echo '-----'
 
-  molecule test --scenario-name conjurize-container
+  molecule test -s configure-conjur-identity
 }
 
 function testRetrieveSecretInMaster() {
@@ -77,7 +77,7 @@ function testRetrieveSecretInMaster() {
   api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-master'].api_key")
   export CONJUR_AUTHN_API_KEY=${api_key}
 
-  molecule test --scenario-name retrieve-secret-in-master
+  molecule test -s retrieve-secret-in-master
 
   echo '-----'
 }
@@ -90,7 +90,7 @@ function testRetrieveSecretInRemote() {
   api_key=$(docker-compose exec -T conjur rails r "print Credentials['cucumber:host:ansible/ansible-custom-target'].api_key")
   export CONJUR_CUSTOM_AUTHN_API_KEY=${api_key}
 
-  molecule test --scenario-name retrieve-secret-in-remote
+  molecule test -s retrieve-secret-in-remote
 
   echo '-----'
 }

@@ -17,16 +17,20 @@ provisioner:
   name: ansible
   lint:
     name: ansible-lint
+  playbooks:
+    create: ../create.yml
+    destroy: ../destroy.yml
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+    options:
+      config-file: ../.flake8
 scenario:
   name: retrieve-secret-in-remote
   test_sequence:
     - destroy
     - create
     - converge
-    #      - lint
     - verify
     - destroy
-verifier:
-  name: testinfra
-  lint:
-    name: flake8

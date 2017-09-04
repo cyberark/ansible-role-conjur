@@ -13,21 +13,25 @@ platforms:
       - name: ansibleroleconjur_default
     volumes:
       - ./summon:/conjurinc/ansible/
-scenario:
-  name: conjurize-container
-  test_sequence:
-    - destroy
-    - create
-    - converge
-#      - lint
-    - verify
-    - destroy
-verifier:
-  name: testinfra
-  lint:
-    name: flake8
 provisioner:
   name: ansible
   config_options:
     defaults:
-      roles_path: ../../conjurize-container
+      roles_path: ../../configure-conjur-identity
+  playbooks:
+    create: ../create.yml
+    destroy: ../destroy.yml
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+    options:
+      config-file: ../.flake8
+scenario:
+  name: configure-conjur-identity
+  test_sequence:
+    - destroy
+    - create
+    - converge
+    - verify
+    - destroy
