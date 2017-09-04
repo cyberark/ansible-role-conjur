@@ -4,6 +4,7 @@ import os.path
 import ssl
 from ansible.module_utils.basic import *
 from httplib import HTTPSConnection
+from httplib import HTTPConnection
 from netrc import netrc
 from os import environ
 from urlparse import urlparse
@@ -157,16 +158,20 @@ class ConjurVariableModule(object):
                 else:
                     self.exit_with_error('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-            # Load our certificate for validation
-            ssl_context = ssl.create_default_context()
-            ssl_context.load_verify_locations(conf['cert_file'])
-            conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
-                                           context = ssl_context)
+            if conf['appliance_url'].startswith('https') is True:
+                    # Load our certificate for validation
+                    ssl_context = ssl.create_default_context()
+                    ssl_context.load_verify_locations(conf['cert_file'])
+                    conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+                                               context = ssl_context)
+            else:
+                    conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
 
-            token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
+
+            token = Token(conjur_connection, identity['id'], identity['api_key'], conf['account'])
 
             # retrieve secrets of the given variables from Conjur
-            secrets = self.retrieve_secrets(conf, conjur_https, token)
+            secrets = self.retrieve_secrets(conf, conjur_connection, token)
 
         except Exception as e:
             self.exit_with_error(e.args[0])

@@ -6,6 +6,7 @@ import yaml
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
 from httplib import HTTPSConnection
+from httplib import HTTPConnection
 from netrc import netrc
 from os import environ
 from sys import stderr
@@ -151,20 +152,23 @@ class LookupModule(LookupBase):
                 else:
                     exit_error('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
+            if conf['appliance_url'].startswith('https') is True:
+                    # Load our certificate for validation
+                    ssl_context = ssl.create_default_context()
+                    ssl_context.load_verify_locations(conf['cert_file'])
+                    # We are using proxy server with the hostname=conjur-proxy-nginx, which known only inside the container network,
+                    # here we are accessing to the proxy container from localhost so we need to disable SSL hostname validation
+                    ssl_context.check_hostname = False
+                    conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+                                               context = ssl_context)
+            else:
+                    conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
 
-            # Load our certificate for validation
-            ssl_context = ssl.create_default_context()
-            ssl_context.load_verify_locations(conf['cert_file'])
-            # We are using proxy server with the hostname=conjur-proxy-nginx, which known only inside the container network,
-            # here we are accessing to the proxy container from localhost so we need to disable SSL hostname validation
-            ssl_context.check_hostname = False
-            conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
-                                           context = ssl_context)
 
-            token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
+            token = Token(conjur_connection, identity['id'], identity['api_key'], conf['account'])
 
             # retrieve secrets of the given variables from Conjur
-            secrets = self.retrieve_secrets(conf, conjur_https, token, terms)
+            secrets = self.retrieve_secrets(conf, conjur_connection, token, terms)
 
         except Exception as e:
             exit_error(e.args[0])
