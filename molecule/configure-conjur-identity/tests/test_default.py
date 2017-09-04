@@ -37,8 +37,7 @@ def test_retrieve_secret_with_cli(host):
 
     assert result == "target_secret_password"
 
-# todo: add again once Summon works with https
-# def test_retrieve_secret_with_summon(host):
-#     result = host.check_output('/conjurinc/ansible/summon.sh && cat secret.txt', shell=True)
-#
-#     assert result == "target_secret_password"
+def test_retrieve_secret_with_summon(host):
+    result = host.check_output('/conjurinc/ansible/summon.sh && cat secret.txt', shell=True)
+
+    assert result == "target_secret_password"
