@@ -87,7 +87,6 @@ function fetchCert() {
   echo "copy cert outside the container"
   docker cp ${conjur_client_cid}':/root/conjur-cucumber.pem' ${PEM_FILE}
 
-
 }
 
 function conjurizeTargetContainer() {
@@ -119,7 +118,7 @@ function RetrieveSecretInMaster() {
 
   # Adding ansible-master identity & conf instead of conjurizing host machine
   export CONJUR_ACCOUNT=cucumber
-  export CONJUR_APPLIANCE_URL=http://127.0.0.1:8443
+  export CONJUR_APPLIANCE_URL=https://localhost:8443
   export CONJUR_CERT_FILE=conjur.pem
   export CONJUR_AUTHN_LOGIN=host/ansible/ansible-master
 

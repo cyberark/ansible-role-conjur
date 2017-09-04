@@ -155,9 +155,6 @@ class LookupModule(LookupBase):
             # Load our certificate for validation
             ssl_context = ssl.create_default_context()
             ssl_context.load_verify_locations(conf['cert_file'])
-            # We are using proxy server with the hostname=conjur-proxy-nginx, which known only inside the container network,
-            # here we are accessing to the proxy container from localhost so we need to disable SSL hostname validation
-            ssl_context.check_hostname = False
             conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
                                            context = ssl_context)
 
