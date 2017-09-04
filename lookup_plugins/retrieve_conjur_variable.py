@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import os.path
-import yaml
+import ssl
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
 from httplib import HTTPConnection
@@ -62,8 +62,12 @@ def load_conf(conf_path):
         return {}
 
     try:
-        with open(conf_path, 'r') as conf_file:
-            return yaml.load(conf_file)
+        config_map = {}
+        lines = open(conf_path).read().splitlines()
+        for line in lines:
+            parts = line.split(': ')
+            config_map[parts[0]] = parts[1]
+        return config_map
     except:
         pass
 
@@ -155,9 +159,7 @@ class LookupModule(LookupBase):
                     exit_error(
                         'Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-            os.system('echo {} >> /tmp/conjur_variable.txt'.format("inside---"))
-            os.system('echo {} >> /tmp/conjur_variable.txt'.format(identity))
-            os.system('echo {} >> /tmp/conjur_variable.txt'.format(conf))
+
             # Load our certificate for validation
             # ssl_context = ssl.create_default_context()
             # ssl_context.load_verify_locations(conf['cert_file'])
