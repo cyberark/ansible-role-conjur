@@ -6,7 +6,6 @@ from httplib import HTTPConnection
 from netrc import netrc
 from os import environ
 from urlparse import urlparse
-import yaml
 from urllib import quote_plus
 from base64 import b64encode
 from time import time
@@ -55,8 +54,12 @@ def load_conf(conf_path):
         return {}
 
     try:
-        with open(conf_path, 'r') as conf_file:
-            return yaml.load(conf_file)
+        config_map = {}
+        lines = open(conf_path).read().splitlines()
+        for line in lines:
+            parts = line.split(': ')
+            config_map[parts[0]] = parts[1]
+        return config_map
     except:
         pass
 

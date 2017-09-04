@@ -2,7 +2,6 @@
 
 import os.path
 import ssl
-import yaml
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
 from httplib import HTTPConnection
@@ -63,8 +62,12 @@ def load_conf(conf_path):
         return {}
 
     try:
-        with open(conf_path, 'r') as conf_file:
-            return yaml.load(conf_file)
+        config_map = {}
+        lines = open(conf_path).read().splitlines()
+        for line in lines:
+            parts = line.split(': ')
+            config_map[parts[0]] = parts[1]
+        return config_map
     except:
         pass
 
