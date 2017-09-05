@@ -121,10 +121,9 @@ class LookupModule(LookupBase):
 
         return secrets
 
-    def run(self, terms, variables, **kwargs):
+    def run(self, terms, variables=None, **kwargs):
         try:
             # Load Conjur configuration
-            # todo - is it ok to have the identity in more than one place? Do we want to change this? If not, what are the priorities?
             conf = merge_dictionaries(
                 load_conf('/etc/conjur.conf')
                 # load_conf('~/.conjurrc')
@@ -140,7 +139,6 @@ class LookupModule(LookupBase):
                     exit_error('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
 
             # Load Conjur identity
-            # todo - is it ok to have the conf in more than one place? Do we want to change this? If not, what are the priorities?
             identity = merge_dictionaries(
                 load_identity('/etc/conjur.identity', conf['appliance_url'])
                 # load_identity('~/.netrc', conf['appliance_url'])
@@ -154,7 +152,6 @@ class LookupModule(LookupBase):
                 else:
                     exit_error('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-
             # Load our certificate for validation
             # ssl_context = ssl.create_default_context()
             # ssl_context.load_verify_locations(conf['cert_file'])
@@ -164,9 +161,7 @@ class LookupModule(LookupBase):
             token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
 
             # retrieve secrets of the given variables from Conjur
-            secrets = self.retrieve_secrets(conf, conjur_https, token, terms)
+            return self.retrieve_secrets(conf, conjur_https, token, terms)
 
         except Exception as e:
             exit_error(e.args[0])
-
-        return secrets
