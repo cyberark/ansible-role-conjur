@@ -2,7 +2,6 @@
 
 import os.path
 import ssl
-import yaml
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
 from httplib import HTTPSConnection
