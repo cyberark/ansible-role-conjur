@@ -9,8 +9,6 @@ services:
     command: server -a cucumber
     ports:
       - "3000:3000"
-    expose:
-      - "3000"
     environment:
       DATABASE_URL: postgres://postgres@postgres/postgres
       CONJUR_DATA_KEY: "W0BuL8iTr/7QvtjIluJbrb5LDAnmXzmcpxkqihO3dXA="
@@ -30,3 +28,17 @@ services:
       CONJUR_AUTHN_LOGIN: admin
     depends_on:
       - conjur
+
+  conjur-proxy-nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    entrypoint: nginx-debug -g 'daemon off;'
+    environment:
+        TERM: xterm
+    ports:
+    - "8080:80"
+    - "8443:443"
+    depends_on:
+      - conjur
+      - client

@@ -19,18 +19,18 @@ function main() {
   createDemoEnvironment
   waitForServer
   createHostFactoryToken
+  fetchCert
   testConjurizeContainer
   testRetrieveSecretInMaster
   testRetrieveSecretInRemote
-
 }
 
 function createDemoEnvironment() {
   echo "Creating demo environment"
   echo '-----'
 
-  docker-compose pull postgres conjur client
-  docker-compose up -d client postgres conjur
+  docker-compose pull postgres conjur client conjur-proxy-nginx
+  docker-compose up -d client postgres conjur conjur-proxy-nginx
 }
 
 function waitForServer() {
@@ -59,6 +59,34 @@ function createHostFactoryToken() {
     /conjurinc/ansible/create_host_token.sh
 
    export HFTOKEN=$(<test-files/output/hftoken.txt)
+}
+
+function fetchCert() {
+  echo "Fetch certificate using client cli"
+  echo '-----'
+
+  # get conjur client container id
+  conjur_client_cid=$(docker-compose ps -q client)
+
+  # get the pem file from conjur server
+  CONJUR_ACCOUNT="cucumber"
+  CONJUR_PROXY="https://conjur-proxy-nginx"
+  PEM_FILE="conjur.pem"
+
+  echo "remove old pem file"
+  rm -rf ${PEM_FILE}
+
+  echo "fetch pem file from proxy https server"
+  exec_command='echo yes | conjur init -u '${CONJUR_PROXY}' -a '${CONJUR_ACCOUNT}' > tmp.out 2>&1'
+  docker exec ${conjur_client_cid} /bin/bash -c "$exec_command"
+
+  echo "print command output"
+  print_command="cat tmp.out"
+  docker exec ${conjur_client_cid} ${print_command}
+
+  echo "copy cert outside the container"
+  docker cp ${conjur_client_cid}':/root/conjur-cucumber.pem' ${PEM_FILE}
+
 }
 
 function testConjurizeContainer() {
