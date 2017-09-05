@@ -1,15 +1,19 @@
 #!/usr/bin/python
 
-import os.path
 import ssl
+import os
+import re
+import shlex
 from ansible.module_utils.basic import *
 from httplib import HTTPSConnection
+from base64 import b64encode
+from httplib import HTTPConnection
 from netrc import netrc
 from os import environ
-from urlparse import urlparse
-from urllib import quote_plus
-from base64 import b64encode
+from subprocess import Popen, PIPE
 from time import time
+from urllib import quote_plus
+from urlparse import urlparse
 
 
 class Token:
@@ -21,7 +25,6 @@ class Token:
         self.refresh_time = 0
         self.account = account
 
-    # refresh
     # Exchanges API key for an auth token, storing it base64 encoded within the
     # 'token' member variable. If it fails to obtain a token, the process exits.
     def refresh(self):
@@ -36,7 +39,6 @@ class Token:
         self.token = b64encode(response.read())
         self.refresh_time = time() + 5 * 60
 
-    # get_header_value
     # Returns the value for the Authorization header. Refreshes the auth token
     # before returning if necessary.
     def get_header_value(self):
@@ -95,58 +97,32 @@ def merge_dictionaries(*arg):
     return ret
 
 
-class ConjurVariableModule(object):
+class ConjurCommandModule(object):
     def __init__(self, module):
         self.module = module
         self.variables = module.params.get('variables')
-
-    def exit_with_error(self, msg):
-        self.module.fail_json(**
-            {
-                "failed": True,
-                "msg": msg
-            }
-        )
-
-
-    def retrieve_secrets(self, conf, conjur_https, token):
-        secrets = {}
-        for k, v in self.variables.items():
-            headers = {'Authorization': token.get_header_value()}
-            url = '/secrets/{}/variable/{}'.format(conf['account'], quote_plus(v))
-
-            conjur_https.request('GET', url, headers=headers)
-            response = conjur_https.getresponse()
-
-            if response.status != 200:
-                raise Exception('Failed to retrieve variable \'{}\' with response status: {} {}'.format(v, response.status, response.reason))
-
-            secrets[k] = response.read()
-
-        return secrets
-
+        self.command = module.params.get('command')
 
     def execute(self):
-
         try:
             # Load Conjur configuration
-            # todo - is it ok to have the identity in more than one place? Do we want to change this? If not, what are the priorities?
             conf = merge_dictionaries(
                 load_conf('/etc/conjur.conf'),
                 load_conf('~/.conjurrc')
             )
             if not conf:
-                if environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL') is not None and environ.get('CONJUR_CERT_FILE') is not None:
+                if environ.get('CONJUR_ACCOUNT') is not None and environ.get(
+                        'CONJUR_APPLIANCE_URL') is not None and environ.get('CONJUR_CERT_FILE') is not None:
                     conf = {
                         "account": environ.get('CONJUR_ACCOUNT'),
                         "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
                         "cert_file": environ.get('CONJUR_CERT_FILE')
                     }
                 else:
-                    self.exit_with_error('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
+                    raise Exception(
+                        'Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
 
             # Load Conjur identity
-            # todo - is it ok to have the conf in more than one place? Do we want to change this? If not, what are the priorities?
             identity = merge_dictionaries(
                 load_identity('/etc/conjur.identity', conf['appliance_url']),
                 load_identity('~/.netrc', conf['appliance_url'])
@@ -158,7 +134,8 @@ class ConjurVariableModule(object):
                         "api_key": environ.get('CONJUR_AUTHN_API_KEY')
                     }
                 else:
-                    self.exit_with_error('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
+                    raise Exception(
+                        'Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
             # Load our certificate for validation
             ssl_context = ssl.create_default_context()
@@ -168,23 +145,79 @@ class ConjurVariableModule(object):
 
             token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
 
+            # filter conjur variables
+            conjur_variables, non_conjur_variables = self.filter_conjur_variables()
+
             # retrieve secrets of the given variables from Conjur
-            secrets = self.retrieve_secrets(conf, conjur_https, token)
+            secrets = self.retrieve_secrets(conf, conjur_https, token, conjur_variables)
+
+            variables = merge_dictionaries(secrets, non_conjur_variables)
+
+            env = self.add_variables_to_env(variables)
+
+            # Execute subprocess with the additional environment variables
+            return self.execute_command_with_new_env(env)
 
         except Exception as e:
             self.exit_with_error(e.args[0])
 
-        return {"changed": False, "secrets": secrets}
+    def exit_with_error(self, msg):
+        self.module.fail_json(**
+                              {
+                                  "failed": True,
+                                  "msg": msg
+                              }
+                              )
+
+    def retrieve_secrets(self, conf, conjur_https, token, variables):
+        secrets = {}
+        for k, v in variables.items():
+            headers = {'Authorization': token.get_header_value()}
+            url = '/secrets/{}/variable/{}'.format(conf['account'], quote_plus(v))
+
+            conjur_https.request('GET', url, headers=headers)
+            response = conjur_https.getresponse()
+
+            if response.status != 200:
+                raise Exception(
+                    'Failed to retrieve variable \'{}\' with response status: {} {}'.format(v, response.status,
+                                                                                            response.reason))
+            secrets[k] = response.read()
+
+        return secrets
+
+    def filter_conjur_variables(self):
+        regex = re.compile(r'(!var )(.*)')
+        conjur_variables = dict([(k, regex.match(v).group(2)) for k, v in self.variables.items() if regex.match(v)])
+        non_conjur_variables = dict([(k, v) for k, v in self.variables.items() if not regex.match(v)])
+        return conjur_variables, non_conjur_variables
+
+    def execute_command_with_new_env(self, env):
+        process = Popen(shlex.split(self.command), env=env, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+
+        if process.returncode != 0:
+            return {"changed": False, "failed": True, "result": stdout, "stderr": stderr}
+        else:
+            return {"changed": False, "result": stdout}
+
+    def add_variables_to_env(self, variables):
+        env = os.environ.copy()
+        for k, v in variables.items():
+            env[k] = v
+
+        return env
 
 
 def main():
     module = AnsibleModule(
-        argument_spec = {
-            "variables": { "required": False, "type": "dict"}
+        argument_spec={
+            "command": {"required": True, "type": "str"},
+            "variables": {"required": False, "type": "dict"}
         }
     )
 
-    result = ConjurVariableModule(module).execute()
+    result = ConjurCommandModule(module).execute()
 
     module.exit_json(**result)
 

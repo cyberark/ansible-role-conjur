@@ -139,7 +139,7 @@ function RetrieveSecretInRemote() {
 
   ansible-playbook playbooks/retrieve_secret_in_remote.yml
 
-  docker exec conjurized-container-test bash -c "cat conjur_secrets.txt && echo"
+  docker exec conjurized-container-test bash -c "cat conjur_env.txt && echo"
 
   echo '-----'
 }
