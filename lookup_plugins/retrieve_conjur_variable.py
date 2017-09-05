@@ -64,8 +64,12 @@ def load_conf(conf_path):
         return {}
 
     try:
-        with open(conf_path, 'r') as conf_file:
-            return yaml.load(conf_file)
+        config_map = {}
+        lines = open(conf_path).read().splitlines()
+        for line in lines:
+            parts = line.split(': ')
+            config_map[parts[0]] = parts[1]
+        return config_map
     except:
         pass
 
@@ -156,9 +160,6 @@ class LookupModule(LookupBase):
                     # Load our certificate for validation
                     ssl_context = ssl.create_default_context()
                     ssl_context.load_verify_locations(conf['cert_file'])
-                    # We are using proxy server with the hostname=conjur-proxy-nginx, which known only inside the container network,
-                    # here we are accessing to the proxy container from localhost so we need to disable SSL hostname validation
-                    ssl_context.check_hostname = False
                     conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
                                                context = ssl_context)
             else:

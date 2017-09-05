@@ -97,7 +97,7 @@ function conjurizeTargetContainer() {
 
   export HFTOKEN=$(<conjur-client-files/output/hftoken.txt)
 
-  ansible-playbook -vvvv playbooks/conjurize-container.yml
+  ansible-playbook playbooks/conjurize-container.yml
 }
 
 function RetrieveSecretInTargetWithCli() {
@@ -119,7 +119,7 @@ function RetrieveSecretInMaster() {
 
   # Adding ansible-master identity & conf instead of conjurizing host machine
   export CONJUR_ACCOUNT=cucumber
-  export CONJUR_APPLIANCE_URL=https://127.0.0.1:8443
+  export CONJUR_APPLIANCE_URL=https://localhost:8443
   export CONJUR_CERT_FILE=conjur.pem
   export CONJUR_AUTHN_LOGIN=host/ansible/ansible-master
 
