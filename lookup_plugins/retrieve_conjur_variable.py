@@ -7,7 +7,6 @@ from base64 import b64encode
 from httplib import HTTPSConnection
 from netrc import netrc
 from os import environ
-from sys import stderr
 from time import time
 from urllib import quote_plus
 from urlparse import urlparse
@@ -48,11 +47,6 @@ class Token:
         return 'Token token="{}"'.format(self.token)
 
 
-def exit_error(err):
-    stderr.write(err)
-    exit(1)
-
-
 # if the conf is not in the path specified, or if an exception is thrown while reading the conf file
 # we don't exit as the conf might be in another path
 def load_conf(conf_path):
@@ -65,6 +59,8 @@ def load_conf(conf_path):
         config_map = {}
         lines = open(conf_path).read().splitlines()
         for line in lines:
+            if line == '---':
+                continue
             parts = line.split(': ')
             config_map[parts[0]] = parts[1]
         return config_map
@@ -122,46 +118,43 @@ class LookupModule(LookupBase):
         return secrets
 
     def run(self, terms, variables=None, **kwargs):
-        try:
-            # Load Conjur configuration
-            conf = merge_dictionaries(
-                load_conf('/etc/conjur.conf')
-                # load_conf('~/.conjurrc')
-            )
-            if not conf:
-                if environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL') is not None and environ.get('CONJUR_CERT_FILE') is not None:
-                    conf = {
-                        "account": environ.get('CONJUR_ACCOUNT'),
-                        "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
-                        "cert_file": environ.get('CONJUR_CERT_FILE')
-                    }
-                else:
-                    exit_error('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
+        # Load Conjur configuration
+        conf = merge_dictionaries(
+            load_conf('/etc/conjur.conf'),
+            load_conf('~/.conjurrc'),
+            {
+                "account": environ.get('CONJUR_ACCOUNT'),
+                "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
+                "cert_file": environ.get('CONJUR_CERT_FILE')
+            } if (environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL')
+                  is not None and environ.get('CONJUR_CERT_FILE') is not None)
+            else {}
+        )
+        if not conf:
+            raise Exception('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
 
-            # Load Conjur identity
-            identity = merge_dictionaries(
-                load_identity('/etc/conjur.identity', conf['appliance_url'])
-                # load_identity('~/.netrc', conf['appliance_url'])
-            )
-            if not identity:
-                if environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None:
-                    identity = {
-                        "id": environ.get('CONJUR_AUTHN_LOGIN'),
-                        "api_key": environ.get('CONJUR_AUTHN_API_KEY')
-                    }
-                else:
-                    exit_error('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
+        # Load Conjur identity
+        identity = merge_dictionaries(
+            load_identity('/etc/conjur.identity', conf['appliance_url']),
+            load_identity('~/.netrc', conf['appliance_url']),
+            {
+                "id": environ.get('CONJUR_AUTHN_LOGIN'),
+                "api_key": environ.get('CONJUR_AUTHN_API_KEY')
+            } if (environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None)
+            else {}
+        )
 
-            # Load our certificate for validation
-            ssl_context = ssl.create_default_context()
-            ssl_context.load_verify_locations(conf['cert_file'])
-            conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
-                                           context = ssl_context)
+        if not identity:
+            raise Exception('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-            token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
+        # Load our certificate for validation
+        ssl_context = ssl.create_default_context()
+        ssl_context.load_verify_locations(conf['cert_file'])
+        conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+                                       context = ssl_context)
 
-            # retrieve secrets of the given variables from Conjur
-            return self.retrieve_secrets(conf, conjur_https, token, terms)
+        token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
 
-        except Exception as e:
-            exit_error(e.args[0])
+        # retrieve secrets of the given variables from Conjur
+        return self.retrieve_secrets(conf, conjur_https, token, terms)
+
