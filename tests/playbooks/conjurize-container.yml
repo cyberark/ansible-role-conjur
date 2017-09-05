@@ -9,4 +9,3 @@
       conjur_ssl_certificate: "{{lookup('file', '../conjur.pem')}}"
       conjur_host_name: "conjur_{{ ansible_hostname }}"
       conjur_validate_certs: no
-      conjur_ssh_enable: no

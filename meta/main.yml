@@ -1,6 +1,6 @@
 galaxy_info:
   author: Dustin Collins
-  description: Configure Conjur identity and SSH
+  description: Configure Conjur identity
   company: Conjur
 
   # If the issue tracker for your role is not on github, uncomment the

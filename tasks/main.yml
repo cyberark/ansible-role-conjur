@@ -1,5 +1,3 @@
 ---
 - include: identity_check.yml  # registers variable 'conjurized'
 - include: identity.yml
-- include: ssh.yml
-  when: conjur_ssh_enable|bool
