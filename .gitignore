@@ -6,3 +6,4 @@
 *.pyc
 **/.molecule/
 **/__pycache__/
+**/test-files/output
