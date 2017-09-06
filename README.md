@@ -1,4 +1,4 @@
-# ansible-conjur
+# ansible-role-conjur
 
 This Ansible suite provides the ability to configure a host with a Conjur identity, for further provisioning with Ansible.
 Based on that identity, secrets can be retrieved securely, using Conjur CLI, Conjur Summon or by using Conjur's lookup plugin
@@ -34,7 +34,7 @@ In order to run the tests, the following are required:
 None
 
 
-## Conjur role
+## "conjur" role
 
 The Conjur role can be used to configure a host with a Conjur machine identity. Through integration with Conjur, 
 the machine can then be granted least-privilege access to retrieve the secrets it needs in a secure manner. 
@@ -68,7 +68,7 @@ Configuring a remote node with a Conjur identity:
       conjur_host_name: "{{inventory_hostname}}"
 ```
 
-## Conjur lookup plugin
+## "retrieve_conjur_variable" lookup plugin
 
 Conjur's `retrieve_conjur_variable` lookup plugin provides a means for retrieving secrets from Conjur for use in playbooks. 
 Note that as lookup plugins run in the Ansible host machine, the identity that will be used for retrieving secrets
@@ -97,7 +97,7 @@ The lookup plugin can be invoked in the playbook's scope as well as in a task's 
       shell: echo "Yay! {{super_secret_key}} was just retrieved with Conjur"
 ```
 
-## Conjur Module
+## "summon_conjur" Module
 
 Using the Conjur Module provides a mechanism for using a remote node’s identity to retrieve secrets that have been explicitly granted to it.
 As Ansible modules run in the remote host, the identity that will be used for retrieving the secrets will be of that remote host. 
@@ -135,13 +135,13 @@ $ SECRET_KEY=top_secret_key SECRET_PASSWORD=top_secret_password NOT_SO_SECRET_VA
 
 ## Considerations
 
-### Conjur Lookup Plugin
+### "retrieve_conjur_variable" lookup plugin
 
 As mentioned earlier, using The Conjur Lookup Plugin to retrieve secrets from Conjur means the Ansible host requires god like privilege.
 A node with god-privilege is high value target within a network. It has access to the keys of the kingdom. A second 
 concern to keep in mind when using the Conjur Lookup Plugin is the inherent openness of variables. Secrets may accidentally leaked to nodes affected by the playbook run.  
 
-### Conjur Module
+### "conjur" Module
 
 Using the Conjur Module may represent a departure from a traditional way of providing secrets to a remote machine, 
 thus require rework of playbooks. Currently, there are limitations to the type of actions that can be called from the Conjur Module.
