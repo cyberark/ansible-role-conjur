@@ -97,7 +97,7 @@ The lookup plugin can be invoked in the playbook's scope as well as in a task's 
       shell: echo "Yay! {{super_secret_key}} was just retrieved with Conjur"
 ```
 
-## "summon_conjur" Module
+## "summon_conjur" module
 
 Using the Conjur Module provides a mechanism for using a remote node’s identity to retrieve secrets that have been explicitly granted to it.
 As Ansible modules run in the remote host, the identity that will be used for retrieving the secrets will be of that remote host. 
