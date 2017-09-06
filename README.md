@@ -152,7 +152,7 @@ Security Tradeoffs
 ------------------
 It is important to consider security tradeoffs when integrating secrets into plays.  
 
-### Simple (but less secure) Approach
+**Simple (But Less Secure) Approach**
 
 Because secrets are injected into plays (either with Ansible Vault or an external Vault), the Ansible host needs to be able to retrieve all secrets required to configure remote nodes. This approach is relatively easy to use, in that secrets are compiled centrally and work just like variables. Unfortunately, this makes the Ansible host a high-value target on the network. Great lengths need to be taken to secure the host. This approach requires a high level of automation and thoughtful network design.  
 
@@ -164,13 +164,13 @@ This role can provide a simple alternative to Ansible Vault by using the lookup 
 
 The Ansible host can be given execute permission on all relevant variables, and be used to retrieve secrets from Conjur at runtime.  This approach requires only minor changes in existing playbooks.
 
-## The more robust approach
+**The More Robust Approach**
 
 Use reliable Machine Identity to create groups of machines and provide machines with minimal privilege.  
 
 This approach provides machines access to the minimal set of resources they need to perform their role.  This can be done by using the `conjur_identity` role to establish identity, then using the `conjur_application` resource to use each remote machine’s identity to retrieve the secrets it requires to operate.
 
-The advantage to this approach is that it removes a machine (or machines) from having too much privilege, thus reducing the internal attach surface.  This approach also enables an organization to take advantage of some of Conjur’s more powerful features, including:
+The advantage to this approach is that it removes a machine (or machines) from having too much privilege, thus reducing the internal attack surface.  This approach also enables an organization to take advantage of some of Conjur’s more powerful features, including:
 
 * Policy as code, which is declarative, reviewable, and idempotent
 * Enable teams to manage secrets relevant to their own applications
