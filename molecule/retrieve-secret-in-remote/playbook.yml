@@ -39,7 +39,7 @@
         mode: 0644
 
     - name: Retrieve secrets with target identity
-      conjur_command:
+      summon_conjur:
         variables:
           RETRIEVED_PASSWORD: "!var ansible/target-password"
           ANOTHER_RETRIEVED_PASSWORD: "!var ansible/another-target-password"
