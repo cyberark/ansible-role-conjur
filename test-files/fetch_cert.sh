@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 cd /conjurinc/ansible
+mkdir -p output
 rm -f output/conjur.pem
 rm -f /root/conjur-cucumber.pem
 rm -f /root/.conjurrc

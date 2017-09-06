@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 cd /conjurinc/ansible
+mkdir -p output
 rm -f output/hftoken.txt
 conjur policy load root policies/root.yml
 conjur variable values add ansible/target-password target_secret_password

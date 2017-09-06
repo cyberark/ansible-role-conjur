@@ -1,4 +1,9 @@
 *.log
 .cache
 *.retry
-.idea/*
+.idea/
+*.pem
+*.pyc
+**/.molecule/
+**/__pycache__/
+**/test-files/output
