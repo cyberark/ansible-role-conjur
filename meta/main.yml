@@ -1,6 +1,8 @@
+dependencies: []
+
 galaxy_info:
-  short_description: Grant Conjur machine identity.
-  description: Ansible role that provides the ability to grant Conjur machine identity to a host.
+  short_description: Grants Conjur machine identity
+  description: Grants Conjur machine identity to hosts
   company: CyberArk
   license: Apache
   author:
@@ -15,8 +17,6 @@ galaxy_info:
       versions:
         - trusty
         - xenial
-
-  dependencies: []
 
   galaxy_tags:
     - machine-identity

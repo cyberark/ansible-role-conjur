@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.3.0-rc.2
+## v0.3.0-rc.3
 
 - Changed role name from `ansible-role-conjur` to `configure-conjur-identity`
 - Added lookup plugin for retrieving Conjur secrets with Ansible host machine identity
