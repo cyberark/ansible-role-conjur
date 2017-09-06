@@ -133,7 +133,7 @@ class ConjurCommandModule(object):
             if not identity:
                 raise Exception('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-            if conf['appliance_url'].startswith('https') is True:
+            if conf['appliance_url'].startswith('https'):
                     # Load our certificate for validation
                     ssl_context = ssl.create_default_context()
                     ssl_context.load_verify_locations(conf['cert_file'])

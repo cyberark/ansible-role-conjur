@@ -13,7 +13,7 @@
 
   - name: Symlink Conjur public SSL certificate into /etc/ssl/certs
     file:
-      src: /etc/conjur.pem
+      src: "{{conjur_ssl_certificate_path}}"
       dest: /etc/ssl/certs/conjur.crt
       state: link
     register: cert_symlink

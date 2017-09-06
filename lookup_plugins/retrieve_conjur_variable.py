@@ -148,16 +148,14 @@ class LookupModule(LookupBase):
         if not identity:
             raise Exception('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-
-        if conf['appliance_url'].startswith('https') is True:
-                # Load our certificate for validation
-                ssl_context = ssl.create_default_context()
-                ssl_context.load_verify_locations(conf['cert_file'])
-                conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
-                                           context = ssl_context)
+        if conf['appliance_url'].startswith('https'):
+            # Load our certificate for validation
+            ssl_context = ssl.create_default_context()
+            ssl_context.load_verify_locations(conf['cert_file'])
+            conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+                                       context = ssl_context)
         else:
-                conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
-
+            conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
 
         token = Token(conjur_connection, identity['id'], identity['api_key'], conf['account'])
 
