@@ -158,4 +158,3 @@ class LookupModule(LookupBase):
 
         # retrieve secrets of the given variables from Conjur
         return self.retrieve_secrets(conf, conjur_https, token, terms)
-

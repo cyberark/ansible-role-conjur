@@ -13,6 +13,8 @@ platforms:
     command: infinity
     networks:
       - name: ansibleroleconjur_default
+    volumes:
+      - ../test-files/:/conjurinc/ansible/
 provisioner:
   name: ansible
   lint:

@@ -24,6 +24,7 @@ services:
       - ./test-files:/conjurinc/ansible/
     environment:
       CONJUR_APPLIANCE_URL: http://conjur:3000
+      CONJUR_PROXY_URL: https://conjur-proxy-nginx
       CONJUR_ACCOUNT: cucumber
       CONJUR_AUTHN_LOGIN: admin
     depends_on:
@@ -31,7 +32,7 @@ services:
 
   conjur-proxy-nginx:
     build:
-      context: .
+      context: ./test-files
       dockerfile: Dockerfile.nginx
     entrypoint: nginx-debug -g 'daemon off;'
     environment:

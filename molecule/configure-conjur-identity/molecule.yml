@@ -12,7 +12,8 @@ platforms:
     networks:
       - name: ansibleroleconjur_default
     volumes:
-      - ./summon:/conjurinc/ansible/
+      - ../test-files/:/conjurinc/ansible/
+      - ../test-files/summon-conjur:/usr/local/lib/summon/
 provisioner:
   name: ansible
   config_options:

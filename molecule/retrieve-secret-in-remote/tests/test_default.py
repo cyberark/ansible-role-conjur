@@ -12,10 +12,12 @@ def test_hosts_file(host):
     assert f.group == 'root'
 
 def test_retrieved_secret(host):
-    secrets_file = host.file('conjur_secrets.txt')
+    conjur_env_file = host.file('conjur_env.txt')
 
-    assert secrets_file.exists
+    assert conjur_env_file.exists
 
-    result = host.check_output("cat conjur_secrets.txt", shell=True)
+    result = host.check_output("cat conjur_env.txt", shell=True)
 
-    assert result == "target_secret_password,another_target_secret_password"
+    assert "RETRIEVED_PASSWORD=target_secret_password" in result \
+           and  "ANOTHER_RETRIEVED_PASSWORD=another_target_secret_password" in result \
+           and "LOCAL_VARIABLE=local_variable_value" in result
