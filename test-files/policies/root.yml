@@ -1,3 +1,4 @@
+---
 - !policy
   id: ansible
   annotations:
@@ -14,7 +15,15 @@
       description: Factory to create new hosts for ansible
     layer: [ *remote_hosts_layer ]
 
-  - !host ansible-master
+  - !host
+    id: ansible-master
+    annotations:
+      description: Host for running Ansible on remote targets
+
+  - !host
+    id: ansible-custom-target
+    annotations:
+      description: Host for conjurized container which is not conjurized by the role
 
   - &variables
     - !variable
@@ -31,6 +40,10 @@
       id: master-password
       annotations:
         description: Password needed by the Ansible master machine
+
+  - !grant
+    role: *remote_hosts_layer
+    member: !host ansible-custom-target
 
   - !permit
     role: *remote_hosts_layer

@@ -1,0 +1,9 @@
+
+RUN apt-get update \
+  && \
+  apt-get install -y \
+  python \
+  python-apt \
+  aptitude \
+  && \
+  rm -rf /var/lib/apt/lists/*

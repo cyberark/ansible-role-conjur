@@ -1,0 +1,38 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: conjurized-container
+    image: conjurinc/cli5
+    dockercommands: true
+    entrypoint: sleep
+    command: infinity
+    networks:
+      - name: ansibleroleconjur_default
+    volumes:
+      - ../test-files/:/conjurinc/ansible/
+      - ../test-files/summon-conjur:/usr/local/lib/summon/
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      roles_path: ../../configure-conjur-identity
+  playbooks:
+    create: ../create.yml
+    destroy: ../destroy.yml
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+    options:
+      config-file: ../.flake8
+scenario:
+  name: configure-conjur-identity
+  test_sequence:
+    - destroy
+    - create
+    - converge
+    - verify
+    - destroy
