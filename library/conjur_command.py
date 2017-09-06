@@ -6,8 +6,8 @@ import re
 import shlex
 from ansible.module_utils.basic import *
 from httplib import HTTPSConnection
-from base64 import b64encode
 from httplib import HTTPConnection
+from base64 import b64encode
 from netrc import netrc
 from os import environ
 from subprocess import Popen, PIPE
@@ -133,19 +133,23 @@ class ConjurCommandModule(object):
             if not identity:
                 raise Exception('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-            # Load our certificate for validation
-            ssl_context = ssl.create_default_context()
-            ssl_context.load_verify_locations(conf['cert_file'])
-            conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
-                                           context = ssl_context)
+            if conf['appliance_url'].startswith('https'):
+                    # Load our certificate for validation
+                    ssl_context = ssl.create_default_context()
+                    ssl_context.load_verify_locations(conf['cert_file'])
+                    conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+                                               context = ssl_context)
+            else:
+                    conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
 
-            token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
+
+            token = Token(conjur_connection, identity['id'], identity['api_key'], conf['account'])
 
             # filter conjur variables
             conjur_variables, non_conjur_variables = self.filter_conjur_variables()
 
             # retrieve secrets of the given variables from Conjur
-            secrets = self.retrieve_secrets(conf, conjur_https, token, conjur_variables)
+            secrets = self.retrieve_secrets(conf, conjur_connection, token, conjur_variables)
 
             variables = merge_dictionaries(secrets, non_conjur_variables)
 

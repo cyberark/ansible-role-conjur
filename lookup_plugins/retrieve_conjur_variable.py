@@ -5,6 +5,7 @@ import ssl
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
 from httplib import HTTPSConnection
+from httplib import HTTPConnection
 from netrc import netrc
 from os import environ
 from time import time
@@ -144,17 +145,19 @@ class LookupModule(LookupBase):
             } if (environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None)
             else {}
         )
-
         if not identity:
             raise Exception('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-        # Load our certificate for validation
-        ssl_context = ssl.create_default_context()
-        ssl_context.load_verify_locations(conf['cert_file'])
-        conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+        if conf['appliance_url'].startswith('https'):
+            # Load our certificate for validation
+            ssl_context = ssl.create_default_context()
+            ssl_context.load_verify_locations(conf['cert_file'])
+            conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
                                        context = ssl_context)
+        else:
+            conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
 
-        token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
+        token = Token(conjur_connection, identity['id'], identity['api_key'], conf['account'])
 
         # retrieve secrets of the given variables from Conjur
-        return self.retrieve_secrets(conf, conjur_https, token, terms)
+        return self.retrieve_secrets(conf, conjur_connection, token, terms)
