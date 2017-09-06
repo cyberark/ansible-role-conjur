@@ -5,9 +5,9 @@ import ssl
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
 from httplib import HTTPSConnection
+from httplib import HTTPConnection
 from netrc import netrc
 from os import environ
-from sys import stderr
 from time import time
 from urllib import quote_plus
 from urlparse import urlparse
@@ -48,11 +48,6 @@ class Token:
         return 'Token token="{}"'.format(self.token)
 
 
-def exit_error(err):
-    stderr.write(err)
-    exit(1)
-
-
 # if the conf is not in the path specified, or if an exception is thrown while reading the conf file
 # we don't exit as the conf might be in another path
 def load_conf(conf_path):
@@ -65,6 +60,8 @@ def load_conf(conf_path):
         config_map = {}
         lines = open(conf_path).read().splitlines()
         for line in lines:
+            if line == '---':
+                continue
             parts = line.split(': ')
             config_map[parts[0]] = parts[1]
         return config_map
@@ -103,7 +100,6 @@ def merge_dictionaries(*arg):
 
 
 class LookupModule(LookupBase):
-
     def retrieve_secrets(self, conf, conjur_https, token, terms):
 
         secrets = []
@@ -115,58 +111,53 @@ class LookupModule(LookupBase):
             conjur_https.request('GET', url, headers=headers)
             response = conjur_https.getresponse()
             if response.status != 200:
-                raise Exception('Failed to retrieve variable \'{}\' with response status: {} {}'.format(variable_name, response.status, response.reason))
+                raise Exception('Failed to retrieve variable \'{}\' with response status: {} {}'.format(variable_name,
+                                                                                                        response.status,
+                                                                                                        response.reason))
 
             secrets.append(response.read())
 
         return secrets
 
-    def run(self, terms, variables, **kwargs):
-        try:
-            # Load Conjur configuration
-            # todo - is it ok to have the identity in more than one place? Do we want to change this? If not, what are the priorities?
-            conf = merge_dictionaries(
-                load_conf('/etc/conjur.conf')
-                # load_conf('~/.conjurrc')
-            )
-            if not conf:
-                if environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL') is not None and environ.get('CONJUR_CERT_FILE') is not None:
-                    conf = {
-                        "account": environ.get('CONJUR_ACCOUNT'),
-                        "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
-                        "cert_file": environ.get('CONJUR_CERT_FILE')
-                    }
-                else:
-                    exit_error('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
+    def run(self, terms, variables=None, **kwargs):
+        # Load Conjur configuration
+        conf = merge_dictionaries(
+            load_conf('/etc/conjur.conf'),
+            load_conf('~/.conjurrc'),
+            {
+                "account": environ.get('CONJUR_ACCOUNT'),
+                "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
+                "cert_file": environ.get('CONJUR_CERT_FILE')
+            } if (environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL')
+                  is not None and environ.get('CONJUR_CERT_FILE') is not None)
+            else {}
+        )
+        if not conf:
+            raise Exception('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
 
-            # Load Conjur identity
-            # todo - is it ok to have the conf in more than one place? Do we want to change this? If not, what are the priorities?
-            identity = merge_dictionaries(
-                load_identity('/etc/conjur.identity', conf['appliance_url'])
-                # load_identity('~/.netrc', conf['appliance_url'])
-            )
-            if not identity:
-                if environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None:
-                    identity = {
-                        "id": environ.get('CONJUR_AUTHN_LOGIN'),
-                        "api_key": environ.get('CONJUR_AUTHN_API_KEY')
-                    }
-                else:
-                    exit_error('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
+        # Load Conjur identity
+        identity = merge_dictionaries(
+            load_identity('/etc/conjur.identity', conf['appliance_url']),
+            load_identity('~/.netrc', conf['appliance_url']),
+            {
+                "id": environ.get('CONJUR_AUTHN_LOGIN'),
+                "api_key": environ.get('CONJUR_AUTHN_API_KEY')
+            } if (environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None)
+            else {}
+        )
+        if not identity:
+            raise Exception('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
-
+        if conf['appliance_url'].startswith('https'):
             # Load our certificate for validation
             ssl_context = ssl.create_default_context()
             ssl_context.load_verify_locations(conf['cert_file'])
-            conjur_https = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
-                                           context = ssl_context)
+            conjur_connection = HTTPSConnection(urlparse(conf['appliance_url']).netloc,
+                                       context = ssl_context)
+        else:
+            conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
 
-            token = Token(conjur_https, identity['id'], identity['api_key'], conf['account'])
+        token = Token(conjur_connection, identity['id'], identity['api_key'], conf['account'])
 
-            # retrieve secrets of the given variables from Conjur
-            secrets = self.retrieve_secrets(conf, conjur_https, token, terms)
-
-        except Exception as e:
-            exit_error(e.args[0])
-
-        return secrets
+        # retrieve secrets of the given variables from Conjur
+        return self.retrieve_secrets(conf, conjur_connection, token, terms)

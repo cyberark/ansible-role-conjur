@@ -1,0 +1,40 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: non-conjurized-container
+    image: conjurinc/cli5
+    dockercommands: true
+    entrypoint: sleep
+    command: infinity
+    networks:
+      - name: ansibleroleconjur_default
+provisioner:
+  name: ansible
+  env:
+    CONJUR_ACCOUNT: "cucumber"
+    CONJUR_APPLIANCE_URL: "https://localhost:8443"
+    CONJUR_CERT_FILE: "../conjur.pem"
+    CONJUR_AUTHN_LOGIN: "host/ansible/ansible-master"
+  config_options:
+    defaults:
+      lookup_plugins: ../../lookup_plugins
+  playbooks:
+    create: ../create.yml
+    destroy: ../destroy.yml
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+    options:
+      config-file: ../.flake8
+scenario:
+  name: retrieve-secret-in-master
+  test_sequence:
+      - destroy
+      - create
+      - converge
+      - verify
+      - destroy

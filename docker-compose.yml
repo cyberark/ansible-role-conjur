@@ -1,0 +1,45 @@
+---
+version: '2'
+services:
+  postgres:
+    image: postgres:9.3
+
+  conjur:
+    image: cyberark/conjur:0.1.0-stable
+    command: server -a cucumber
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://postgres@postgres/postgres
+      CONJUR_DATA_KEY: "W0BuL8iTr/7QvtjIluJbrb5LDAnmXzmcpxkqihO3dXA="
+      PORT: 3000
+    depends_on:
+      - postgres
+
+  client:
+    image: conjurinc/cli5
+    entrypoint: sleep
+    command: infinity
+    volumes:
+      - ./test-files:/conjurinc/ansible/
+    environment:
+      CONJUR_APPLIANCE_URL: http://conjur:3000
+      CONJUR_PROXY_URL: https://conjur-proxy-nginx
+      CONJUR_ACCOUNT: cucumber
+      CONJUR_AUTHN_LOGIN: admin
+    depends_on:
+      - conjur
+
+  conjur-proxy-nginx:
+    build:
+      context: ./test-files
+      dockerfile: Dockerfile.nginx
+    entrypoint: nginx-debug -g 'daemon off;'
+    environment:
+        TERM: xterm
+    ports:
+    - "8080:80"
+    - "8443:443"
+    depends_on:
+      - conjur
+      - client

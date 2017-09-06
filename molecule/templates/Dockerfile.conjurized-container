@@ -1,0 +1,12 @@
+
+RUN apt-get update \
+  && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  apt-utils \
+  sudo \
+  && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /usr/local/lib/summon \
+  && \
+  wget -qO- https://github.com/cyberark/summon/releases/download/v0.6.5/summon-linux-amd64.tar.gz | tar xvz -C /usr/local/bin

@@ -110,6 +110,10 @@ The advantage to this approach is that it removes a machine (or machines) from h
 
 It is worth noting that moving identity out to remote machines will most likely require a small amount of rework of current playbooks.  We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms of flexibility and security moving forward.
 
+**Recommendations**
+
+* Add `no_log: true` to each play that uses sensitive data, otherwise that data can be printed to the logs.
+* Set the Ansible files to minimum permissions. The Ansible uses the permissions of the user that runs it. 
 
 License
 -------
