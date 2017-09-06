@@ -25,8 +25,6 @@ pipeline {
         sh './publish.sh'
       }
     }
-
-
   }
 
   post {

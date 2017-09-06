@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
 function finish {
   echo 'Removing demo environment'
