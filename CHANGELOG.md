@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.3.0
+
+- Changed role name from `ansible-role-conjur` to `configure-role-identity`
+- Added lookup plugin for retrieving Conjur secrets with Ansible host machine identity
+- Added module for retrieving Conjur secrets with Ansible remote machine identity
+- Added Molecule tests for role, lookup plugin & module
+- Role, lookup plugin & module work with HTTP & HTTPS (with self-signed & CA certificates)
+
 ## 0.2.3
 
 - `/etc/conjur.identity` is no longer symlinked from `/dev/shm`. This is too opinionated.
