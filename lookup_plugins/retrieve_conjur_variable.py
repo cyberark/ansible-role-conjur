@@ -99,7 +99,6 @@ def merge_dictionaries(*arg):
 
 
 class LookupModule(LookupBase):
-
     def retrieve_secrets(self, conf, conjur_https, token, terms):
 
         secrets = []
@@ -111,7 +110,9 @@ class LookupModule(LookupBase):
             conjur_https.request('GET', url, headers=headers)
             response = conjur_https.getresponse()
             if response.status != 200:
-                raise Exception('Failed to retrieve variable \'{}\' with response status: {} {}'.format(variable_name, response.status, response.reason))
+                raise Exception('Failed to retrieve variable \'{}\' with response status: {} {}'.format(variable_name,
+                                                                                                        response.status,
+                                                                                                        response.reason))
 
             secrets.append(response.read())
 
@@ -157,4 +158,3 @@ class LookupModule(LookupBase):
 
         # retrieve secrets of the given variables from Conjur
         return self.retrieve_secrets(conf, conjur_https, token, terms)
-

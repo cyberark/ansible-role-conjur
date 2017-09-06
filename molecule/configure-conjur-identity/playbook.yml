@@ -1,8 +1,9 @@
 ---
-- hosts: conjurized-container-test
+- name: Converge
+  hosts: conjurized-container
   become: true
   roles:
-    - role: ansible-role-conjur
+    - role: ansible-role-conjur/configure-conjur-identity
       conjur_account: cucumber
       conjur_appliance_url: "https://conjur-proxy-nginx"
       conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}"

@@ -1,4 +1,0 @@
-[targets]
-
-conjurized-container-test  ansible_connection=docker
-non-conjurized-container-test  ansible_connection=docker

@@ -108,34 +108,30 @@ class ConjurCommandModule(object):
             # Load Conjur configuration
             conf = merge_dictionaries(
                 load_conf('/etc/conjur.conf'),
-                load_conf('~/.conjurrc')
+                load_conf('~/.conjurrc'),
+                {
+                    "account": environ.get('CONJUR_ACCOUNT'),
+                    "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
+                    "cert_file": environ.get('CONJUR_CERT_FILE')
+                } if (environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL')
+                      is not None and environ.get('CONJUR_CERT_FILE') is not None)
+                else {}
             )
             if not conf:
-                if environ.get('CONJUR_ACCOUNT') is not None and environ.get(
-                        'CONJUR_APPLIANCE_URL') is not None and environ.get('CONJUR_CERT_FILE') is not None:
-                    conf = {
-                        "account": environ.get('CONJUR_ACCOUNT'),
-                        "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
-                        "cert_file": environ.get('CONJUR_CERT_FILE')
-                    }
-                else:
-                    raise Exception(
-                        'Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
+                raise Exception('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
 
             # Load Conjur identity
             identity = merge_dictionaries(
                 load_identity('/etc/conjur.identity', conf['appliance_url']),
-                load_identity('~/.netrc', conf['appliance_url'])
+                load_identity('~/.netrc', conf['appliance_url']),
+                {
+                    "id": environ.get('CONJUR_AUTHN_LOGIN'),
+                    "api_key": environ.get('CONJUR_AUTHN_API_KEY')
+                } if (environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None)
+                else {}
             )
             if not identity:
-                if environ.get('CONJUR_AUTHN_LOGIN') is not None and environ.get('CONJUR_AUTHN_API_KEY') is not None:
-                    identity = {
-                        "id": environ.get('CONJUR_AUTHN_LOGIN'),
-                        "api_key": environ.get('CONJUR_AUTHN_API_KEY')
-                    }
-                else:
-                    raise Exception(
-                        'Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
+                raise Exception('Conjur identity should be in environment variables or in one of the following paths: \'~/.netrc\', \'/etc/conjur.identity\'')
 
             # Load our certificate for validation
             ssl_context = ssl.create_default_context()
