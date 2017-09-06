@@ -84,13 +84,14 @@ mechanism for applying credentials to a process based on that machine's identity
 
 Security Tradeoffs
 ------------------
-With Ansible and security, there’s a couple of opportunities and tradeoffs to be made between the various approaches of integrating secrets into plays.  
+It is important to consider security tradeoffs when integrating secrets into plays.  
 
 **Simple (but less secure) Approach**
 
-From a security perspective, Ansible (and Chef, Puppet, Salt Stack, etc.) suffer from a God Privilege problem. Because secrets are injected into plays (either with Ansible Vault or an external Vault), the Ansible host needs to be able to retrieve all secrets required to configure remote nodes. This approach highly favors the playbook writer and/or operator, in that secrets are compiled centrally and work just like variables. Unfortunately, the presence of a high value target like this in the network means great lengths need to be taken to secure the host. This approach requires a high level of automation and thoughtful network design.  
+Because secrets are injected into plays (either with Ansible Vault or an external Vault), the Ansible host needs to be able to retrieve all secrets required to configure remote nodes. This approach is relatively easy to use, in that secrets are compiled centrally and work just like variables. Unfortunately, this makes the Ansible host a high-value target on the network. Great lengths need to be taken to secure the host. This approach requires a high level of automation and thoughtful network design.  
 
 This role can provide a simple alternative to Ansible Vault by using the lookup plugin. This approach lets an organization:
+
 * Removing a common encryption key while encrypted secrets at rest
 * Simplify secret rotation/changing
 * Manage user and group access to secrets
@@ -99,23 +100,24 @@ The Ansible host can be given execute permission on all relevant variables, and 
 
 **The more robust approach**
 
-The primary innovation Conjur brings is not secrets management, it’s machine identity.  Once we’re able to reliably identify machines, we can group them, and provide machines with minimal privilege.  
+Use reliable Machine Identity to create groups of machines and provide machines with minimal privilege.  
 
-An alternative to design pattern to the God Privilege is to use identity to group and provide machines access to the minimal set of resources they need to perform their role.  This can be done by using the `conjur_identity` role to establish identity, then using the `conjur_application` resource to use each remote machine’s identity to retrieve the secrets it requires to operate.
+This approach provides machines access to the minimal set of resources they need to perform their role.  This can be done by using the `conjur_identity` role to establish identity, then using the `conjur_application` resource to use each remote machine’s identity to retrieve the secrets it requires to operate.
 
-The advantage to this approach is that it removes a machine (or machines) from having god privileges, thus reducing the internal attach surface.  This approach also enables an organization to take advantage of some of Conjur’s more powerful features, including:
+The advantage to this approach is that it removes a machine (or machines) from having too much privilege, thus reducing the internal attach surface.  This approach also enables an organization to take advantage of some of Conjur’s more powerful features, including:
+
 * Policy as code, which is declarative, reviewable, and idempotent
-* Audit trail
 * Enable teams to manage secrets relevant to their own applications
+* Audit trail (Conjur Enterprise)
 
-It is worth noting that moving identity out to remote machines will most likely require a small amount of rework of current playbooks.  We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms of flexibility and security moving forward.
+It is worth noting that moving identity out to remote machines will most likely require some rework of current playbooks.  We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms of flexibility and security moving forward.
 
 **Recommendations**
 
 * Add `no_log: true` to each play that uses sensitive data, otherwise that data can be printed to the logs.
-* Set the Ansible files to minimum permissions. The Ansible uses the permissions of the user that runs it. 
+* Set the Ansible files to minimum permissions. The Ansible uses the permissions of the user that runs it.
 
 License
 -------
 
-MIT
+Apache 2
