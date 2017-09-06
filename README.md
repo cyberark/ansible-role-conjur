@@ -1,11 +1,11 @@
-ansible-role-conjur
-=========
+# ansible-conjur
 
-This role configures a host with a Conjur identity. Based on that identity, secrets
-can be retrieved securely.
+This Ansible suite provides the ability to configure a host with a Conjur identity, for further provisioning with Ansible.
+Based on that identity, secrets can be retrieved securely, using Conjur CLI, Conjur Summon or by using Conjur's lookup plugin
+and Conjur's `summon_conjur` module. We'll get into each of this suite's components throughout the Readme.
 
-Installation
-------------
+
+## Installation
 
 The Conjur role can be installed using the following:
 
@@ -13,73 +13,139 @@ The Conjur role can be installed using the following:
 $ ansible-galaxy install cyberark.conjur
 ```
 
-Requirements
-------------
+## Requirements
 
-A running Conjur service accessible from the host machine and target machine.
+### Usage
 
-Role Variables
---------------
-* conjur_identity:
-  * `conjur_url`: URL of the running Conjur service
-  * `account`: Conjur account name
-  * `host_factory_token`: [Host Factory](https://developer.conjur.net/reference/services/host_factory/) token for layer enrollment
-  * `host_name`: Name of the host being conjurized.
-  * `ssl_certificate`: Public SSL certificate of Conjur endpoint
-  * `validate_certs`: yes
+A running Conjur service accessible from the Ansible host machine and remote machine.
+In order to use this suite, Ansible 2.3.2.0 is required.
 
-Dependencies
-------------
+### Testing
+
+We use [Molecule](https://github.com/metacloud/molecule#molecule) to test Conjur's Ansible role, lookup plugin & module.
+
+In order to run the tests, the following are required:
+
+* Ansible 2.3.2.0
+* Molecule 2.0.4 
+
+### Dependencies
 
 None
 
-Example Playbook
-----------------
+
+## Conjur role
+
+The Conjur role can be used to configure a host with a Conjur machine identity. Through integration with Conjur, 
+the machine can then be granted least-privilege access to retrieve the secrets it needs in a secure manner. 
+Providing a node with a Conjur Identity enables permission to be dictated by Conjur policies.
+
+### Role Variables
+
+* configure-conjur-identity:
+  * `conjur_appliance_url` `*`: URL of the running Conjur service
+  * `conjur_account` `*`: Conjur account name
+  * `conjur_host_factory_token` `*`: [Host Factory](https://developer.conjur.net/reference/services/host_factory/) token for 
+  layer enrollment
+  * `conjur_host_name` `*`: Name of the host being conjurized.
+  * `conjur_ssl_certificate`: Public SSL certificate of the Conjur endpoint
+  * `conjur_validate_certs`: Boolean value to indicate if the Conjur endpoint should validate certificates
+
+The variables marked with `*` are required fields. The other variables are required for running with an HTTPS Conjur endpoint,
+but are not required if you run with an HTTP Conjur endpoint.
+
+
+### Example Playbook
 
 Configuring a remote node with a Conjur identity:
 ```yml
 - hosts: servers
   roles:
-    - role: conjur_identity
-      account: 'myorg',
-      conjur_url: 'https://conjur.myorg.com/api',
-      host_factory_token: "{{lookup('env', 'HFTOKEN')}}",
-      host_name: "{{inventory_hostname}}"
+    - role: playbook.yml
+      conjur_appliance_url: 'https://conjur.myorg.com/api',
+      conjur_account: 'myorg',
+      conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}",
+      conjur_host_name: "{{inventory_hostname}}"
 ```
 
-Provide secret retrieval:
+## Conjur lookup plugin
+
+Conjur's `retrieve_conjur_variable` lookup plugin provides a means for retrieving secrets from Conjur for use in playbooks. 
+Note that as lookup plugins run in the Ansible host machine, the identity that will be used for retrieving secrets
+are those of the Ansible host. Thus, the Ansible host requires god like privilege, essentially read access to every secret that a remote node may need.
+
+The lookup plugin can be invoked in the playbook's scope as well as in a task's scope.
+
+### Example Playbook
+
+#### Playbook scope
 ```yml
-- hosts: webservers
+- hosts: servers
   vars:
-    super_secret_key: {{ lookup('conjur', 'path/to/secret') }}
-    max_clients: 200
-  remote_user: root
+    super_secret_key: {{ lookup('retrieve_conjur_variable', 'path/to/secret') }}
   tasks:
     ...
 ```
 
-Provide secret (Summon style):
+#### Task scope
+```yml
+- hosts: servers
+  tasks:
+    - name: Retrieve secret with master identity
+      vars:
+        super_secret_key: {{ lookup('retrieve_conjur_variable', 'path/to/secret') }}
+      shell: echo "Yay! {{super_secret_key}} was just retrieved with Conjur"
+```
+
+## Conjur Module
+
+Using the Conjur Module provides a mechanism for using a remote node’s identity to retrieve secrets that have been explicitly granted to it.
+As Ansible modules run in the remote host, the identity that will be used for retrieving the secrets will be of that remote host. 
+This approach reduces the administrative power of the Ansible host and prevents it from becoming a high value target.
+
+Moving secret retrieval out to the node provides a maximum level of security. This approach spreads security risk by 
+providing each node with the minimal amount of privilege required to of that node. The Conjur Module also provides host level audit logging of secret retrieval. Environment variables are never written to disk.
+
+The module receives variables and a command as arguments and, as in [Conjur's Summon CLI](https://www.conjur.org/integrations/summon.html),
+provides an interface for fetching secrets from a provider and exporting them to a sub-process environment. 
+
+Note that you can provide both Conjur variables and non-Conjur variables, where in Conjur variables a `!var` prefix is required.
+
+
+### Example Playbook
 ```yml
 - hosts: webservers
   tasks:
-    - name: ensure app Foo is running
-      conjur_application:
-        run:
-          command: rails s
-          args:
-            chdir: /foo/app
+    - name: Ensure app Foo is running
+      summon_conjur:
         variables:
-          - SECRET_KEY: /path/to/secret-key
-          - SECRET_PASSWORD: /path/to/secret_password
+          - SECRET_KEY: !var /path/to/secret-key
+          - SECRET_PASSWORD: !var /path/to/secret_password
+          - NOT_SO_SECRET_VARIABLE: "{{lookup('env', 'SOME_ENVIRONMENT_VARIABLE')}}"
+        command: rails s
 ```
-The above example uses the variables defined in `variables` block to map environment
+
+The above example uses the variables defined in the `variables` block to map environment
 variables to Conjur variables. The above case would result in the following being
 executed on the remote node:
+
 ```sh
-$ cd /foo/app && SECRET_KEY=topsecretkey SECRET_PASSWORD=topsecretpassword rails s
+$ SECRET_KEY=top_secret_key SECRET_PASSWORD=top_secret_password NOT_SO_SECRET_VARIABLE=some_environment_variable_value rails s
 ```
-The `run` block can take the input of any Ansible module. This provides a simple
-mechanism for applying credentials to a process based on that machine's identity.
+
+## Considerations
+
+### Conjur Lookup Plugin
+
+As mentioned earlier, using The Conjur Lookup Plugin to retrieve secrets from Conjur means the Ansible host requires god like privilege.
+A node with god-privilege is high value target within a network. It has access to the keys of the kingdom. A second 
+concern to keep in mind when using the Conjur Lookup Plugin is the inherent openness of variables. Secrets may accidentally leaked to nodes affected by the playbook run.  
+
+### Conjur Module
+
+Using the Conjur Module may represent a departure from a traditional way of providing secrets to a remote machine, 
+thus require rework of playbooks. Currently, there are limitations to the type of actions that can be called from the Conjur Module.
+This may be addressed in the future.
 
 
 Security Tradeoffs
@@ -112,12 +178,12 @@ The advantage to this approach is that it removes a machine (or machines) from h
 
 It is worth noting that moving identity out to remote machines will most likely require some rework of current playbooks.  We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms of flexibility and security moving forward.
 
-**Recommendations**
+## Recommendations
 
 * Add `no_log: true` to each play that uses sensitive data, otherwise that data can be printed to the logs.
 * Set the Ansible files to minimum permissions. The Ansible uses the permissions of the user that runs it.
 
-License
--------
+
+## License
 
 Apache 2
