@@ -18,7 +18,7 @@ $ ansible-galaxy install cyberark.conjur
 ### Usage
 
 A running Conjur service accessible from the Ansible host machine and remote machine.
-In order to use this suite, Ansible 2.3.2.0 is required.
+In order to use this suite, ansible 2.3.x.x is required.
 
 ### Testing
 
@@ -26,8 +26,8 @@ We use [Molecule](https://github.com/metacloud/molecule#molecule) to test Conjur
 
 In order to run the tests, the following are required:
 
-* Ansible 2.3.2.0
-* Molecule 2.0.4 
+* ansible 2.3.x.x
+* Molecule 2.x.x 
 
 ### Dependencies
 
