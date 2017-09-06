@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
 function finish {
   echo 'Removing demo environment'
@@ -80,7 +80,8 @@ function testConjurizeContainer() {
   echo "Conjurizing the target container with Ansible"
   echo '-----'
 
-  molecule test -s configure-conjur-identity
+  env MOLECULE_DEBUG=1 \
+    molecule test -s configure-conjur-identity
 }
 
 function testRetrieveSecretInMaster() {

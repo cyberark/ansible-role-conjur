@@ -1,2 +1,1 @@
-ansible==2.3.x.x
-boto==2.45.0
+ansible==2.3.2.0
