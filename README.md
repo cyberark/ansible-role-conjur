@@ -28,12 +28,6 @@ Role Variables
   * `ssl_certificate`: Public SSL certificate of Conjur endpoint
   * `validate_certs`: yes
 
-* conjur_ssh:
-  * `ssh_enabled`: Configure Conjur SSH management, default `false`
-
-
-Sane defaults are set in [defaults/main.yml](defaults/main.yml).
-
 Dependencies
 ------------
 
@@ -112,7 +106,6 @@ An alternative to design pattern to the God Privilege is to use identity to grou
 The advantage to this approach is that it removes a machine (or machines) from having god privileges, thus reducing the internal attach surface.  This approach also enables an organization to take advantage of some of Conjur’s more powerful features, including:
 * Policy as code, which is declarative, reviewable, and idempotent
 * Audit trail
-* Managed SSH access
 * Enable teams to manage secrets relevant to their own applications
 
 It is worth noting that moving identity out to remote machines will most likely require a small amount of rework of current playbooks.  We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms of flexibility and security moving forward.
