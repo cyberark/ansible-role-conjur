@@ -23,15 +23,15 @@ $ ansible-galaxy install cyberark.conjur
 
 ### Usage
 
-A running Conjur service accessible from the Ansible host and target machines.
-In order to use this suite, ansible 2.3.x.x is required.
+A running Conjur service that is accessible from the Ansible host and target machines.
+To use this suite, ansible 2.3.x.x is required.
 
 ### Testing
 
 We use [Molecule](https://github.com/metacloud/molecule#molecule) to test
 Conjur's Ansible role, lookup plugin & module.
 
-In order to run the tests:
+To run the tests:
 
 1. Clone this project.
 2. Create a Python virtualenv.
@@ -50,7 +50,7 @@ None
 
 ## "conjur" role
 
-The Conjur role provides a method (mechanism) to “Conjurize” or establish the identity of a remote node with Ansible.
+The Conjur role provides a method to “Conjurize” or establish the identity of a remote node with Ansible.
 Through integration with Conjur, the machine can then be granted least-privilege access
 to retrieve the secrets it needs in a secure manner.
 Providing a node with a Conjur Identity enables privileges to be granted by Conjur policies.
@@ -115,7 +115,7 @@ The lookup plugin can be invoked in the playbook's scope as well as in a task's 
 ## "summon_conjur" module
 
 The Conjur Module provides a mechanism for using a remote node’s identity to retrieve secrets that have been explicitly granted to it.
-As Ansible modules run in the remote host, the identity that will be used for retrieving the secrets will be of that remote host.
+As Ansible modules run in the remote host, the identity used for retrieving secrets is that of the remote host.
 This approach reduces the administrative power of the Ansible host and prevents it from becoming a high value target.
 
 Moving secret retrieval to the node provides a maximum level of security. This approach reduces the security risk by
