@@ -7,8 +7,8 @@ Based on that identity, secrets can then be retrieved securely using the
 included in this role.
 
 Additionally, [Summon](https://github.com/cyberark/summon), the
-[Conjur CLI](https://github.com/cyberark/conjur-cli), and
-the[Conjur API](https://www.conjur.org/api.html)
+[Conjur CLI](https://github.com/cyberark/conjur-cli), and the
+[Conjur API](https://www.conjur.org/api.html)
 can also be used to retrieve secrets from a host with Conjur identity.
 
 ## Installation
