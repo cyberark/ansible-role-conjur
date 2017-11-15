@@ -1,0 +1,43 @@
+version: '3'
+services:
+  ansible:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/conjurinc/ansible-role-conjur/
+      - /var/run/docker.sock:/var/run/docker.sock
+  pg:
+    image: postgres:9.3
+
+  conjur:
+    image: cyberark/conjur
+    command: server -a cucumber -p 3000
+    environment:
+      CONJUR_APPLIANCE_URL: http://localhost:3000
+      DATABASE_URL: postgres://postgres@pg/postgres
+      CONJUR_DATA_KEY: "W0BuL8iTr/7QvtjIluJbrb5LDAnmXzmcpxkqihO3dXA="
+    ports:
+      - "3000:3000"
+    networks:
+      - default
+    links:
+      - pg
+
+  conjur_cli:
+    image: conjurinc/cli5
+    entrypoint: []
+    command: /sbin/init
+    environment:
+      CONJUR_APPLIANCE_URL: http://conjur:3000
+      CONJUR_ACCOUNT: cucumber
+      CONJUR_AUTHN_LOGIN: admin
+    volumes:
+      - ./policy:/policy
+    links:
+      - conjur
+
+  test_app:
+    build: ./test_app
+    entrypoint: sleep
+    command: infinity
