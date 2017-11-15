@@ -42,7 +42,7 @@ services:
     entrypoint: sleep
     command: infinity
 
-  conjur-nginx-proxy:
+  conjur-proxy-nginx:
     build:
       context: .
       dockerfile: Dockerfile_nginx
