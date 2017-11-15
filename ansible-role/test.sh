@@ -62,16 +62,9 @@ function teardown_and_setup {
   docker-compose up -d --force-recreate --scale test_app=2 test_app
 }
 
-wait_for_server_command=$(cat <<-EOF
-for i in \$(seq 20); do
-  curl -o /dev/null -fs -X OPTIONS \${CONJUR_APPLIANCE_URL} > /dev/null && echo "server is up" && break
-  echo "."
-  sleep 2
-done
-EOF
-)
+
 function wait_for_server {
-  docker-compose exec conjur_cli bash -c "$wait_for_server_command"
+  docker-compose exec conjur_cli /scripts/wait_for_server.sh
 }
 
 function main() {
