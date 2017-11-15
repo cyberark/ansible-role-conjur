@@ -76,6 +76,9 @@ function wait_for_server {
   docker exec ${cli_cid} bash -c "$wait_for_server_command"
 }
 
+function fetch_ssl_cert {
+  docker-compose exec conjur-https cat cert.crt > conjur.pem
+}
 function main() {
   docker-compose down
   docker-compose up -d --build

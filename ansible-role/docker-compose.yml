@@ -41,3 +41,17 @@ services:
     build: ./test_app
     entrypoint: sleep
     command: infinity
+
+  conjur-nginx-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile_nginx
+    entrypoint: nginx-debug -g 'daemon off;'
+    environment:
+        TERM: xterm
+    ports:
+    - "8080:80"
+    - "8443:443"
+    depends_on:
+      - conjur
+      - conjur_cli
