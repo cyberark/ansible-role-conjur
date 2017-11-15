@@ -77,7 +77,7 @@ function wait_for_server {
 }
 
 function fetch_ssl_cert {
-  docker-compose exec conjur-proxy-nginx cat cert.crt > conjur.pem
+  docker exec $(docker-compose ps -q conjur-proxy-nginx) cat cert.crt > conjur.pem
 }
 
 function main() {
