@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -x
 
 function finish {
   echo 'Removing test environment'
@@ -7,7 +8,7 @@ function finish {
 }
 trap finish EXIT
 
-_api_key=''
+declare _api_key=''
 
 function api_key {
   if [ -z ${_api_key} ]
