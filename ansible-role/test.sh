@@ -32,8 +32,6 @@ function setup_conjur {
 
   # set secret values
   local set_secrets_commands=$(cat <<EOF
-#!/bin/bash -e
-
 conjur variable values add ansible/target-password target_secret_password
 conjur variable values add ansible/another-target-password another_target_secret_password
 conjur variable values add ansible/master-password ansible_master_secret_password
@@ -67,9 +65,7 @@ function teardown_and_setup {
 }
 
 wait_for_server_command=$(cat <<EOF
-#!/bin/bash -e
-
-for i in $(seq 20); do
+for i in \$(seq 20); do
   curl -o /dev/null -fs -X OPTIONS \${CONJUR_APPLIANCE_URL} > /dev/null && echo "server is up" && break
   echo "."
   sleep 2
