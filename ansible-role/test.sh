@@ -31,7 +31,9 @@ function setup_conjur {
   docker exec ${cli_cid} env CONJUR_AUTHN_API_KEY=$(api_key) conjur policy load root /policy/root.yml
 
   # set secret values
-  local set_secrets_commands=$(cat <<-EOF
+  local set_secrets_commands=$(cat <<EOF
+#!/bin/bash -e
+
 conjur variable values add ansible/target-password target_secret_password
 conjur variable values add ansible/another-target-password another_target_secret_password
 conjur variable values add ansible/master-password ansible_master_secret_password
@@ -64,7 +66,9 @@ function teardown_and_setup {
   docker-compose up -d --force-recreate --scale test_app=2 test_app
 }
 
-wait_for_server_command=$(cat <<-EOF
+wait_for_server_command=$(cat <<EOF
+#!/bin/bash -e
+
 for i in $(seq 20); do
   curl -o /dev/null -fs -X OPTIONS \${CONJUR_APPLIANCE_URL} > /dev/null && echo "server is up" && break
   echo "."
