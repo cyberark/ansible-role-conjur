@@ -23,6 +23,7 @@ function hf_token {
 }
 
 function setup_conjur {
+  echo "---- setting up conjur ----"
   # run policy
   docker-compose exec conjur_cli env CONJUR_AUTHN_API_KEY=$(api_key) conjur policy load root /policy/root.yml
 
@@ -45,6 +46,7 @@ function run_test_cases {
 }
 
 function run_test_case {
+  echo "---- testing ${test_case} ----"
   local test_case=$1
   if [ ! -z "$test_case" ]
   then
