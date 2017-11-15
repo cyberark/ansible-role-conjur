@@ -34,7 +34,6 @@ services:
       CONJUR_AUTHN_LOGIN: admin
     volumes:
       - ./policy:/policy
-      - ./scripts:/scripts
     links:
       - conjur
 
