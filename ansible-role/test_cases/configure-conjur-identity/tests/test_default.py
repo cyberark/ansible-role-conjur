@@ -3,7 +3,6 @@ import testinfra.utils.ansible_runner
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
     '/conjurinc/ansible-role-conjur/ansible-role/inventory').get_hosts('all')
 
-
 def test_hosts_file(host):
     f = host.file('/etc/hosts')
 

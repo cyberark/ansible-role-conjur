@@ -1,5 +1,5 @@
 ---
-- name: Converge
+- name: conjurize container
   hosts: testapp
   become: true
   roles:
