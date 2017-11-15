@@ -77,17 +77,17 @@ function wait_for_server {
 }
 
 function fetch_ssl_cert {
-  docker-compose exec conjur-https cat cert.crt > conjur.pem
+  docker-compose exec conjur-proxy-nginx cat cert.crt > conjur.pem
 }
 
 function main() {
   docker-compose down
   docker-compose up -d --build
-  fetch_ssl_cert
   cli_cid=$(docker-compose ps -q conjur_cli)
   conjur_cid=$(docker-compose ps -q conjur)
   ansible_cid=$(docker-compose ps -q ansible)
   wait_for_server
+  fetch_ssl_cert
   api_key
   setup_conjur
   run_test_cases
