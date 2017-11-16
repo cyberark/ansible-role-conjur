@@ -41,13 +41,11 @@ function setup_conjur {
   docker exec ${cli_cid} conjur policy load root /policy/root.yml
 
   # set secret values
-  local set_secrets_commands=$(cat <<EOF
-conjur variable values add ansible/target-password target_secret_password
-conjur variable values add ansible/another-target-password another_target_secret_password
-conjur variable values add ansible/master-password ansible_master_secret_password
-EOF
-)
-  docker exec ${cli_cid} bash -c "$set_secrets_commands"
+  docker exec ${cli_cid} bash -c '
+    conjur variable values add ansible/target-password target_secret_password
+    conjur variable values add ansible/another-target-password another_target_secret_password
+    conjur variable values add ansible/master-password ansible_master_secret_password
+  '
 }
 
 function run_test_cases {
@@ -62,8 +60,14 @@ function run_test_case {
   local test_case=$1
   if [ ! -z "$test_case" ]
   then
-    docker exec ${ansible_cid} env HFTOKEN=$(hf_token) bash -c "cd tests && ansible-playbook test_cases/${test_case}/playbook.yml"
-    docker exec ${ansible_cid} bash -c "cd tests && py.test --junitxml=./junit/${test_case} --connection docker -v test_cases/${test_case}/tests/test_default.py"
+    docker exec ${ansible_cid} env HFTOKEN=$(hf_token) bash -c "
+      cd tests
+      ansible-playbook test_cases/${test_case}/playbook.yml
+    "
+    docker exec ${ansible_cid} bash -c "
+      cd tests
+      py.test --junitxml=./junit/${test_case} --connection docker -v test_cases/${test_case}/tests/test_default.py
+    "
   else
     echo ERROR: run_test called with no argument 1>&2
     exit 1
@@ -74,16 +78,14 @@ function teardown_and_setup {
   docker-compose up -d --force-recreate --scale test_app=2 test_app
 }
 
-wait_for_server_command=$(cat <<EOF
-for i in \$(seq 20); do
-  curl -o /dev/null -fs -X OPTIONS \${CONJUR_APPLIANCE_URL} > /dev/null && echo "server is up" && break
-  echo "."
-  sleep 2
-done
-EOF
-)
 function wait_for_server {
-  docker exec ${cli_cid} bash -c "$wait_for_server_command"
+  docker exec ${cli_cid} bash -c '
+    for i in $(seq 20); do
+      curl -o /dev/null -fs -X OPTIONS ${CONJUR_APPLIANCE_URL} > /dev/null && echo "server is up" && break
+      echo "."
+      sleep 2
+    done
+  '
 }
 
 function fetch_ssl_cert {
@@ -92,7 +94,10 @@ function fetch_ssl_cert {
 
 function generate_inventory {
   # uses .j2 template to generate inventory prepended with COMPOSE_PROJECT_NAME
-  docker exec $(docker-compose ps -q ansible) bash -c 'cd tests && ansible-playbook -i -, inventory-playbook.yml'
+  docker exec $(docker-compose ps -q ansible) bash -c '
+    cd tests
+    ansible-playbook -i -, inventory-playbook.yml
+  '
 }
 
 function main() {
