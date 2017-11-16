@@ -1,6 +1,4 @@
-FROM ubuntu:trusty
-
-MAINTAINER Jason Vanderhoof <jason.vanderhoof@cyberark.com>
+FROM ubuntu:16.04
 
 RUN apt-get update -y && apt-get install -y python
 RUN apt-get update && apt-get install -y gcc build-essential
