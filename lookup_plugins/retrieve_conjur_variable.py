@@ -129,7 +129,7 @@ class LookupModule(LookupBase):
                 "appliance_url": environ.get("CONJUR_APPLIANCE_URL"),
                 "cert_file": environ.get('CONJUR_CERT_FILE')
             } if (environ.get('CONJUR_ACCOUNT') is not None and environ.get('CONJUR_APPLIANCE_URL')
-                  is not None and environ.get('CONJUR_CERT_FILE') is not None)
+                  is not None and (environ.get('CONJUR_APPLIANCE_URL').startswith('https') is not True or environ.get('CONJUR_CERT_FILE') is not None))
             else {}
         )
         if not conf:

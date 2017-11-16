@@ -1,5 +1,5 @@
 ---
-- name: conjurize container
+- name: configuring conjur conjurize container
   hosts: testapp
   become: true
   roles:

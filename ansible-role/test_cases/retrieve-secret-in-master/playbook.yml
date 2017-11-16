@@ -1,6 +1,6 @@
 ---
 - name: retrieve secret without conjurizing container
-  hosts: testapp
+  hosts: ansible
   tasks:
     - name: Retrieve secret with master identity
       vars:

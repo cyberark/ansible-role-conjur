@@ -1,34 +1,39 @@
 #!/bin/bash -e
 set -x
 
-function finish {
-  echo 'Removing test environment'
-  echo '---'
-  docker-compose down -v
-}
-trap finish EXIT
+#function finish {
+#  echo 'Removing test environment'
+#  echo '---'
+#  docker-compose down -v
+#}
+#trap finish EXIT
 
-declare _api_key=''
+declare -x CUSTOM_CONJUR_AUTHN_API_KEY=''
+declare -x ANSIBLE_CONJUR_AUTHN_API_KEY=''
+declare -x CLI_CONJUR_AUTHN_API_KEY=''
 declare cli_cid=''
 declare conjur_cid=''
 declare ansible_cid=''
 
-function api_key {
-  if [ -z ${_api_key} ]
+function api_key_for {
+  local role_id=$1
+  if [ ! -z "$role_id" ]
   then
-    _api_key=$(docker exec ${conjur_cid} rails r "print Credentials['cucumber:user:admin'].api_key")
+    docker exec ${conjur_cid} rails r "print Credentials['${role_id}'].api_key"
+  else
+    echo ERROR: api_key_for called with no argument 1>&2
+    exit 1
   fi
-  echo ${_api_key}
 }
 
 function hf_token {
-  echo $(docker exec ${cli_cid} env CONJUR_AUTHN_API_KEY=$(api_key) conjur hostfactory tokens create --duration-minutes=5 ansible/ansible-factory | jq -r '.[0].token')
+  echo $(docker exec ${cli_cid} conjur hostfactory tokens create --duration-minutes=5 ansible/ansible-factory | jq -r '.[0].token')
 }
 
 function setup_conjur {
   echo "---- setting up conjur ----"
   # run policy
-  docker exec ${cli_cid} env CONJUR_AUTHN_API_KEY=$(api_key) conjur policy load root /policy/root.yml
+  docker exec ${cli_cid} conjur policy load root /policy/root.yml
 
   # set secret values
   local set_secrets_commands=$(cat <<EOF
@@ -37,7 +42,7 @@ conjur variable values add ansible/another-target-password another_target_secret
 conjur variable values add ansible/master-password ansible_master_secret_password
 EOF
 )
-  docker exec ${cli_cid} env CONJUR_AUTHN_API_KEY=$(api_key) bash -c "$set_secrets_commands"
+  docker exec ${cli_cid} bash -c "$set_secrets_commands"
 }
 
 function run_test_cases {
@@ -81,15 +86,23 @@ function fetch_ssl_cert {
 }
 
 function main() {
-  docker-compose down
-  docker-compose up -d --build
-  cli_cid=$(docker-compose ps -q conjur_cli)
+  docker-compose down -v
+  docker-compose up -d --build conjur pg conjur-proxy-nginx conjur_cli test_app
   conjur_cid=$(docker-compose ps -q conjur)
-  ansible_cid=$(docker-compose ps -q ansible)
-  wait_for_server
+  cli_cid=$(docker-compose ps -q conjur_cli)
   fetch_ssl_cert
-  api_key
+  wait_for_server
+
+  CLI_CONJUR_AUTHN_API_KEY=$(api_key_for 'cucumber:user:admin')
+  docker-compose up -d conjur_cli
+  cli_cid=$(docker-compose ps -q conjur_cli)
   setup_conjur
+
+  CUSTOM_CONJUR_AUTHN_API_KEY=$(api_key_for 'cucumber:host:ansible/ansible-custom-target')
+  ANSIBLE_CONJUR_AUTHN_API_KEY=$(api_key_for 'cucumber:host:ansible/ansible-master')
+  docker-compose up -d ansible
+  ansible_cid=$(docker-compose ps -q ansible)
+
   run_test_cases
 }
 
