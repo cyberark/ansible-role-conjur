@@ -11,9 +11,9 @@ pipeline {
   stages {
     stage('Run tests') {
       steps {
-        sh 'cd ansible-role; ./test.sh'
+        sh 'cd tests; ./test.sh'
 
-        junit 'ansible-role/junit/*'
+        junit 'tests/junit/*'
       }
     }
 
