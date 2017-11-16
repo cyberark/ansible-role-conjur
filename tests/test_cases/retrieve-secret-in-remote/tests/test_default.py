@@ -1,7 +1,7 @@
 import testinfra.utils.ansible_runner
 
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
-    '/conjurinc/ansible-role-conjur/ansible-role/inventory.tmp').get_hosts('testapp')
+    '/conjurinc/ansible-role-conjur/tests/inventory.tmp').get_hosts('testapp')
 
 
 def test_hosts_file(host):
