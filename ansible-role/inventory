@@ -1,5 +1,0 @@
-[testapp]
-ansiblerole_test_app_[1:2] ansible_connection=docker
-
-[ansible]
-ansiblerole_ansible_1 ansible_connection=docker

@@ -9,3 +9,4 @@
 **/test-files/output
 junit
 molecule/conjur.pem
+*.tmp

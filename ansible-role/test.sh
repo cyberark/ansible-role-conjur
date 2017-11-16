@@ -1,12 +1,17 @@
 #!/bin/bash -e
 set -x
 
-#function finish {
-#  echo 'Removing test environment'
-#  echo '---'
-#  docker-compose down -v
-#}
-#trap finish EXIT
+function finish {
+  echo 'Removing test environment'
+  echo '---'
+  docker-compose down -v
+  rm -rf inventory.tmp
+}
+trap finish EXIT
+finish
+
+# normalises project name by filtering non alphanumeric characters and transforming to lowercase
+declare -x COMPOSE_PROJECT_NAME=$(echo ${BUILD_TAG:-"ansible-role-testing"} | sed -e 's/[^[:alnum:]]//g' | tr '[:upper:]' '[:lower:]')
 
 declare -x CUSTOM_CONJUR_AUTHN_API_KEY=''
 declare -x ANSIBLE_CONJUR_AUTHN_API_KEY=''
@@ -85,9 +90,15 @@ function fetch_ssl_cert {
   docker exec $(docker-compose ps -q conjur-proxy-nginx) cat cert.crt > conjur.pem
 }
 
+function generate_inventory {
+  # uses .j2 template to generate inventory prepended with COMPOSE_PROJECT_NAME
+  docker exec $(docker-compose ps -q ansible) bash -c 'cd ansible-role && ansible-playbook -i -, inventory-playbook.yml'
+}
+
 function main() {
-  docker-compose down -v
-  docker-compose up -d --build conjur pg conjur-proxy-nginx conjur_cli test_app
+  docker-compose up -d --build
+  generate_inventory
+
   conjur_cid=$(docker-compose ps -q conjur)
   cli_cid=$(docker-compose ps -q conjur_cli)
   fetch_ssl_cert
