@@ -1,5 +1,5 @@
 ---
-- name: Retrieve secrets with target identity
+- name: Retrieve secrets with remote target identity
   hosts: testapp
   become: true
   vars:
