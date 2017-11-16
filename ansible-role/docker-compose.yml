@@ -24,8 +24,6 @@ services:
       CONJUR_APPLIANCE_URL: http://localhost:3000
       DATABASE_URL: postgres://postgres@pg/postgres
       CONJUR_DATA_KEY: "W0BuL8iTr/7QvtjIluJbrb5LDAnmXzmcpxkqihO3dXA="
-    ports:
-#      - "3000:3000"
     networks:
       - default
     links:
@@ -57,9 +55,6 @@ services:
     entrypoint: nginx-debug -g 'daemon off;'
     environment:
         TERM: xterm
-    ports:
-#    - "8080:80"
-#    - "8443:443"
     depends_on:
       - conjur
       - conjur_cli
