@@ -62,8 +62,8 @@ function run_test_case {
   local test_case=$1
   if [ ! -z "$test_case" ]
   then
-    docker exec ${ansible_cid} env HFTOKEN=$(hf_token) bash -c "cd ansible-role && ansible-playbook test_cases/${test_case}/playbook.yml"
-    docker exec ${ansible_cid} bash -c "cd ansible-role && py.test --junitxml=./junit/${test_case} --connection docker -v test_cases/${test_case}/tests/test_default.py"
+    docker exec ${ansible_cid} env HFTOKEN=$(hf_token) bash -c "cd tests && ansible-playbook test_cases/${test_case}/playbook.yml"
+    docker exec ${ansible_cid} bash -c "cd tests && py.test --junitxml=./junit/${test_case} --connection docker -v test_cases/${test_case}/tests/test_default.py"
   else
     echo ERROR: run_test called with no argument 1>&2
     exit 1
@@ -92,7 +92,7 @@ function fetch_ssl_cert {
 
 function generate_inventory {
   # uses .j2 template to generate inventory prepended with COMPOSE_PROJECT_NAME
-  docker exec $(docker-compose ps -q ansible) bash -c 'cd ansible-role && ansible-playbook -i -, inventory-playbook.yml'
+  docker exec $(docker-compose ps -q ansible) bash -c 'cd tests && ansible-playbook -i -, inventory-playbook.yml'
 }
 
 function main() {
