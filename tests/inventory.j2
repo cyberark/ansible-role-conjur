@@ -1,0 +1,5 @@
+[testapp]
+{{ lookup('env','COMPOSE_PROJECT_NAME') }}_test_app_[1:2] ansible_connection=docker
+
+[ansible]
+{{ lookup('env','COMPOSE_PROJECT_NAME') }}_ansible_1 ansible_connection=docker

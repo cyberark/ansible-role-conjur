@@ -7,4 +7,6 @@
 **/.molecule/
 **/__pycache__/
 **/test-files/output
+junit
 molecule/conjur.pem
+*.tmp

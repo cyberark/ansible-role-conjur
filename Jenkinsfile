@@ -11,9 +11,9 @@ pipeline {
   stages {
     stage('Run tests') {
       steps {
-        sh './test.sh'
+        sh 'cd tests; ./test.sh'
 
-        // junit ''
+        junit 'tests/junit/*'
       }
     }
 
