@@ -28,20 +28,12 @@ To use this suite, ansible 2.3.x.x is required.
 
 ### Testing
 
-We use [Molecule](https://github.com/metacloud/molecule#molecule) to test
-Conjur's Ansible role, lookup plugin & module.
-
 To run the tests:
-
-1. Clone this project.
-2. Create a Python virtualenv.
-3. Install project requirements.
 
 ```sh-session
 $ git clone https://github.com/cyberark/ansible-role-conjur.git
-$ cd ansible-role-conjur
-$ mkvirtualenv $(basename $PWD)
-$ pip install -r requirements.txt -r requirements-dev.txt
+$ cd ansible-role-conjur/tests
+$ ./test.sh
 ```
 
 ### Dependencies
@@ -152,15 +144,15 @@ $ SECRET_KEY=top_secret_key SECRET_PASSWORD=top_secret_password NOT_SO_SECRET_VA
 
 ### "retrieve_conjur_variable" lookup plugin
 
-As mentioned earlier, Retrieving secrets from Conjur with the Lookup Plugin gives the Ansible Controller host “god privileges”. 
+As mentioned earlier, Retrieving secrets from Conjur with the Lookup Plugin gives the Ansible Controller host “god privileges”.
 This means the Ansible Controller host has read access to every secret that a remote node may need.
 A node with god-privilege is a high value target within a network as it has access to the keys of the kingdom. A second
-concern to keep in mind when using the Conjur Lookup Plugin is the inherent openness of variables. Secrets may be accidentally 
+concern to keep in mind when using the Conjur Lookup Plugin is the inherent openness of variables. Secrets may be accidentally
 leaked to nodes affected by the playbook run.  
 
 ### "conjur" Module
 
-The Conjur Module represents a departure from the traditional method of providing secrets to a remote machine and 
+The Conjur Module represents a departure from the traditional method of providing secrets to a remote machine and
 requires a rework of existing playbooks. Currently, there are limitations to the type of actions that can be called from the Conjur Module.
 This may be addressed in the future.
 
@@ -171,11 +163,11 @@ There are a couple of security opportunities and tradeoffs between the various a
 
 **Simple (But Less Secure) Approach**
 
-From a security perspective, Ansible (and Chef, Puppet, Salt Stack, etc.) suffer from a God Privilege problem. 
-Because secrets are injected into plays, either with an Ansible Vault or an external Vault, the Ansible host needs 
-to retrieve all secrets required to configure remote nodes. This approach highly favors the playbook writer and/or 
-operator because secrets are compiled centrally and work just like variables. However, the presence of a high value 
-target like this in the network requires extra measures to secure the host. 
+From a security perspective, Ansible (and Chef, Puppet, Salt Stack, etc.) suffer from a God Privilege problem.
+Because secrets are injected into plays, either with an Ansible Vault or an external Vault, the Ansible host needs
+to retrieve all secrets required to configure remote nodes. This approach highly favors the playbook writer and/or
+operator because secrets are compiled centrally and work just like variables. However, the presence of a high value
+target like this in the network requires extra measures to secure the host.
 This approach requires a high level of automation and thoughtful network design.
 
 This role can provide a simple alternative to the Ansible Vault by using the lookup plugin. This approach lets an organization:
@@ -188,22 +180,22 @@ The Ansible host can be given execute permission on all relevant variables, and 
 
 **The More Robust Approach**
 
-Conjur’s primary innovation is not secrets management, it is machine identity. Once we are able to reliably identify machines, 
+Conjur’s primary innovation is not secrets management, it is machine identity. Once we are able to reliably identify machines,
 we can group them, and provide machines with minimal privileges.
-An alternative design pattern to “god privileges” is to use an identity to group machines and provide access to the 
+An alternative design pattern to “god privileges” is to use an identity to group machines and provide access to the
 minimal set of resources they need to perform their role. This can be done by implementing the `conjur_identity` 
-role to establish an identity and then implementing the `conjur_application` resource to use each remote machine’s identity to 
+role to establish an identity and then implementing the `conjur_application` resource to use each remote machine’s identity to
 retrieve the secrets it requires to operate.
 
-The advantage to this approach is that it removes “god privileges” from a machine (or machines) reducing the internal attach surface. 
+The advantage to this approach is that it removes “god privileges” from a machine (or machines) reducing the internal attach surface.
 This approach also enables an organization to take advantage of some of Conjur’s more powerful features, including:
 
 * Policy as code, which is declarative, reviewable, and idempotent
 * Enable teams to manage secrets relevant to their own applications
 * Audit trail (Conjur Enterprise)
 
-Moving identity to remote machines most likely will require some amount of rework of current playbooks. 
-We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms 
+Moving identity to remote machines most likely will require some amount of rework of current playbooks.
+We’ve tried to minimize this effort, and we believe that the effort will greatly benefit your organization in terms
 of flexibility and security moving forward.
 
 
