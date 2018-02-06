@@ -146,7 +146,7 @@ class LookupModule(LookupBase):
 	if (environ.get('CONJUR_VERSION') is not None):
 	    conf['version'] = environ.get('CONJUR_VERSION')
 	else:
-	    conf['version'] = "4"
+	    conf['version'] = "5"
 
         # Load Conjur identity
         identity = merge_dictionaries(
