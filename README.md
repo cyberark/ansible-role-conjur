@@ -88,13 +88,14 @@ The lookup plugin can be invoked in the playbook's scope as well as in a task's 
 
 ### Example Playbook
 Using environment variables:
+```shell
 export CONJUR_ACCOUNT="orgaccount"
 export CONJUR_VERSION="4"
 export CONJUR_APPLIANCE_URL="https://conjur-appliance"
 export CONJUR_CERT_FILE="/path/to/conjur_certficate_file"
 export CONJUR_AUTHN_LOGIN="host/host_indentity"
 export CONJUR_AUTHN_API_KEY="host API Key"
-
+```
 
 #### Playbook scope
 ```yml
