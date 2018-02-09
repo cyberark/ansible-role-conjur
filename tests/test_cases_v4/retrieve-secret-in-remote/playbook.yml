@@ -1,0 +1,56 @@
+---
+- name: Retrieve secrets with remote target identity
+  hosts: testapp
+  become: true
+  vars:
+    CONJUR_ACCOUNT: "{{lookup('env', 'CONJUR_ACCOUNT')}}"
+    CONJUR_APPLIANCE_URL: "{{lookup('env', 'CONJUR_APPLIANCE_URL')}}"
+    CONJUR_CUSTOM_TARGET_AUTHN_API_KEY: "{{lookup('env', 'CONJUR_V4_CUSTOM_TARGET_AUTHN_API_KEY')}}"
+    CONJUR_SSL_CERTIFICATE: "{{lookup('env', 'CONJUR_SSL_CERTIFICATE')}}"
+  roles:
+    - role: summon_conjur
+  tasks:
+    - name: Place Conjur public SSL certificate
+      copy:
+        dest: /etc/conjur.pem
+        content: "{{ CONJUR_SSL_CERTIFICATE }}"
+        mode: 0644
+
+    - name: Symlink Conjur public SSL certificate into /etc/ssl/certs
+      file:
+        src: /etc/conjur.pem
+        dest: /etc/ssl/certs/conjur.crt
+        state: link
+      register: cert_symlink
+
+    - name: Rehash certs
+      command: 'c_rehash'
+      when: cert_symlink.changed
+
+    - name: Render /etc/conjur.conf
+      template:
+        src: "templates/conjur.conf.j2"
+        dest: /etc/conjur.conf
+        mode: 0644
+
+    - name: Render /etc/conjur.identity
+      template:
+        src: "templates/conjur.identity.j2"
+        dest: /etc/conjur.identity
+        mode: 0644
+
+    - name: Place write env to file script
+      copy:
+        dest: /write_env_to_file.sh
+        src: ./write_env_to_file.sh
+        mode: +x
+
+    - name: Retrieve secrets with target identity
+      environment:
+        CONJUR_MAJOR_VERSION: "4"
+      summon_conjur:
+        secretsyml: |
+          RETRIEVED_PASSWORD: !var ansible/target-password
+          ANOTHER_RETRIEVED_PASSWORD: !var ansible/another-target-password
+          LOCAL_VARIABLE: "{{lookup('env', 'CONJUR_ACCOUNT')}}"
+        command: /write_env_to_file.sh

@@ -5,7 +5,7 @@
   vars:
     CONJUR_ACCOUNT: "cucumber"
     CONJUR_APPLIANCE_URL: "https://conjur-proxy-nginx"
-    CONJUR_CUSTOM_AUTHN_API_KEY: "{{lookup('env', 'CONJUR_CUSTOM_AUTHN_API_KEY')}}"
+    CONJUR_CUSTOM_TARGET_AUTHN_API_KEY: "{{lookup('env', 'CONJUR_CUSTOM_TARGET_AUTHN_API_KEY')}}"
     CONJUR_SSL_CERTIFICATE: "{{lookup('file', '../../conjur.pem')}}"
   roles:
     - role: summon_conjur
