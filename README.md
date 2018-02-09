@@ -69,9 +69,9 @@ Configure a remote node with a Conjur identity:
 - hosts: servers
   roles:
     - role: playbook.yml
-      conjur_appliance_url: 'https://conjur.myorg.com/api',
-      conjur_account: 'myorg',
-      conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}",
+      conjur_appliance_url: 'https://conjur.myorg.com/api'
+      conjur_account: 'myorg'
+      conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}"
       conjur_host_name: "{{inventory_hostname}}"
 ```
 

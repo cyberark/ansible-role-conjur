@@ -2,8 +2,6 @@
 - name: Retrieve secrets with remote target identity
   hosts: testapp
   become: true
-  environment:
-    EXAMPLE_CONJUR_MAJOR_VERSION: "4"
   vars:
     CONJUR_ACCOUNT: "cucumber"
     CONJUR_APPLIANCE_URL: "https://conjur-proxy-nginx"
@@ -48,6 +46,8 @@
         mode: +x
 
     - name: Retrieve secrets with target identity
+      environment:
+        EXAMPLE_CONJUR_MAJOR_VERSION: "4"
       summon_conjur:
         secretsyml: |
           RETRIEVED_PASSWORD: !var ansible/target-password
