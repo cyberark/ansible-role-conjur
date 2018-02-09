@@ -27,10 +27,10 @@ class Token:
     # Exchanges API key for an auth token, storing it base64 encoded within the
     # 'token' member variable. If it fails to obtain a token, the process exits.
     def refresh(self):
-	if self.version == "5":
-        	authn_url = '/authn/{}/{}/authenticate'.format(quote_plus(self.account), quote_plus(self.id))
-	else:
-		authn_url = '/api/authn/users/{}/authenticate'.format(quote_plus(self.id))
+        if self.version == "5":
+            authn_url = '/authn/{}/{}/authenticate'.format(quote_plus(self.account), quote_plus(self.id))
+        else:
+            authn_url = '/api/authn/users/{}/authenticate'.format(quote_plus(self.id))
         self.http_connection.request('POST', authn_url, self.api_key)
 
         response = self.http_connection.getresponse()
@@ -111,10 +111,12 @@ class LookupModule(LookupBase):
         for term in terms:
             variable_name = term.split()[0]
             headers = {'Authorization': token.get_header_value()}
-	    if conf['version'] == "5":
-            	url = '/secrets/{}/variable/{}'.format(conf['account'], quote_plus(variable_name))
-	    else:
-            	url = '/api/variables/{}/value'.format(quote_plus(variable_name))
+
+            if conf['version'] == "5":
+                url = '/secrets/{}/variable/{}'.format(conf['account'], quote_plus(variable_name))
+            else:
+                url = '/api/variables/{}/value'.format(quote_plus(variable_name))
+
             conjur_https.request('GET', url, headers=headers)
             response = conjur_https.getresponse()
             if response.status != 200:
@@ -142,11 +144,11 @@ class LookupModule(LookupBase):
         if not conf:
             raise Exception('Conjur configuration should be in environment variables or in one of the following paths: \'~/.conjurrc\', \'/etc/conjur.conf\'')
 
-	# Load Conjur version
-	if (environ.get('CONJUR_VERSION') is not None):
-	    conf['version'] = environ.get('CONJUR_VERSION')
-	else:
-	    conf['version'] = "5"
+        # Load Conjur version
+        if (environ.get('CONJUR_VERSION') is not None):
+            conf['version'] = environ.get('CONJUR_VERSION')
+        else:
+            conf['version'] = "5"
 
         # Load Conjur identity
         identity = merge_dictionaries(
