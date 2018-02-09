@@ -10,3 +10,5 @@
 junit
 molecule/conjur.pem
 *.tmp
+pkg
+ansible-role-conjur.tar.gz

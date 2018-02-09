@@ -1,0 +1,6 @@
+- block:
+  - name: Place conjur-env binary in /etc/conjur-env
+    copy:
+      src: "../conjur-env/conjur-env_{{ ansible_system|lower }}"
+      dest: /etc/conjur-env
+      mode: 0755

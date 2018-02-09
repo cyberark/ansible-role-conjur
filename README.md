@@ -104,7 +104,13 @@ The lookup plugin can be invoked in the playbook's scope as well as in a task's 
       shell: echo "Yay! {{super_secret_key}} was just retrieved with Conjur"
 ```
 
+## "summon_conjur" role
+
+The summon_conjur role provides a binary to the node for convinient secret retrieval from Conjur using the node's machine identity.
+
 ## "summon_conjur" module
+
+**requires** that the `summon_conjur` role has been applied to the remote node
 
 The Conjur Module provides a mechanism for using a remote node’s identity to retrieve secrets that have been explicitly granted to it.
 As Ansible modules run in the remote host, the identity used for retrieving secrets is that of the remote host.
@@ -113,7 +119,7 @@ This approach reduces the administrative power of the Ansible host and prevents 
 Moving secret retrieval to the node provides a maximum level of security. This approach reduces the security risk by
 providing each node with the minimal amount of privilege required for that node. The Conjur Module also provides host level audit logging of secret retrieval. Environment variables are never written to disk.
 
-The module receives variables and a command as arguments and, as in [Conjur's Summon CLI](https://www.conjur.org/integrations/summon.html),
+The module receives a secretsyml string (YAML format) and a command as arguments and, as in [Conjur's Summon CLI](https://www.conjur.org/integrations/summon.html),
 provides an interface for fetching secrets from a provider and exporting them to a sub-process environment.
 
 Note that you can provide both Conjur variables and non-Conjur variables, where in Conjur variables a `!var` prefix is required.
@@ -125,14 +131,14 @@ Note that you can provide both Conjur variables and non-Conjur variables, where 
   tasks:
     - name: Ensure app Foo is running
       summon_conjur:
-        variables:
-          - SECRET_KEY: !var /path/to/secret-key
-          - SECRET_PASSWORD: !var /path/to/secret_password
-          - NOT_SO_SECRET_VARIABLE: "{{lookup('env', 'SOME_ENVIRONMENT_VARIABLE')}}"
+        secretsyml: |
+          SECRET_KEY: !var /path/to/secret-key
+          SECRET_PASSWORD: !var /path/to/secret_password
+          NOT_SO_SECRET_VARIABLE: "{{lookup('env', 'SOME_ENVIRONMENT_VARIABLE')}}"
         command: rails s
 ```
 
-The example above uses the variables defined in the `variables` block to map environment
+The example above uses the variables defined in the [`secretsyml`](https://www.conjur.org/integrations/summon.html#secretsyml) string (YAML format) to map environment
 variables to Conjur variables. This results in the following being
 executed on the remote node:
 

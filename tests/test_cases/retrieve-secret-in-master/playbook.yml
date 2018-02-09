@@ -5,4 +5,6 @@
     - name: Retrieve secret with master identity
       vars:
         super_secret_key: "{{lookup('retrieve_conjur_variable', 'ansible/master-password')}}"
-      shell: echo "{{super_secret_key}}" > ./conjur_secrets.txt
+      shell: rm -rf ./conjur_secrets.txt; echo "{{super_secret_key}}" > ./conjur_secrets.txt
+
+# TODO: document that you need to set environment variable CONJUR_MAJOR_VERSION when running looking on v4
