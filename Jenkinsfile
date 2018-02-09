@@ -16,15 +16,6 @@ pipeline {
         junit 'tests/junit/*'
       }
     }
-
-    stage("Publish 'conjur' role to Galaxy") {
-      when {
-        branch 'master'
-      }
-      steps {
-        sh './publish.sh'
-      }
-    }
   }
 
   post {

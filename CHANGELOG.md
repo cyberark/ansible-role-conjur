@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## v0.3.0-rc.3
+## v0.4.0
+
+- `retrieve_conjur_variable` lookup plugin is now backwards-compatible with Conjur 4. Set the enviroment variable `CONJUR_VERSION=4` on the host machine to enable Conjur 4 support.
+
+## v0.3.0
 
 - Changed role name from `ansible-role-conjur` to `configure-conjur-identity`
 - Added lookup plugin for retrieving Conjur secrets with Ansible host machine identity
