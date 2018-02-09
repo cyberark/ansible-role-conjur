@@ -1,6 +1,6 @@
 - block:
-  - name: Place conjur-env binary in /etc/conjur-env
+  - name: Place conjur-fetch binary in /etc/conjur-fetch
     copy:
-      src: "../conjur-env/conjur-env_{{ ansible_system|lower }}"
-      dest: /etc/conjur-env
+      src: "../conjur-fetch/conjur-fetch_{{ ansible_system|lower }}"
+      dest: /etc/conjur-fetch
       mode: 0755

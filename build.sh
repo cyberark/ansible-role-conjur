@@ -1,14 +1,14 @@
 #!/bin/bash -e
 
 rm -rf pkg
-mkdir -p pkg pkg/conjur-env
+mkdir -p pkg pkg/conjur-fetch
 
 wd=$(cd $(dirname $0); pwd)
 cd "$wd"
 
-./conjur-env/build.sh
+./conjur-fetch/build.sh
 
-cp -R ./conjur-env/conjur-env* pkg/conjur-env
+cp -R ./conjur-fetch/conjur-fetch* pkg/conjur-fetch
 cp -R ./configure-conjur-identity pkg
 cp -R ./lookup_plugins pkg
 cp -R ./library pkg

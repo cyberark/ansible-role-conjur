@@ -14,7 +14,7 @@ class LookupModule(LookupBase):
         executable_path = os.path.realpath(
             '/'.join([
                 os.path.dirname(__file__),
-                "../conjur-env/conjur-env_%s" % (system_id)
+                "../conjur-fetch/conjur-fetch_%s" % (system_id)
             ]))
 
         p = Popen([executable_path], env=dict(os.environ, SECRETSYML=secretsyml), stdout=PIPE, stderr=PIPE, shell=True)

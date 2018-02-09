@@ -1,6 +1,6 @@
 version: '3'
 services:
-  conjur-env-builder:
+  conjur-fetch-builder:
     build: .
     volumes:
       - .:/pkg

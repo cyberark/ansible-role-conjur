@@ -34,7 +34,7 @@ class ConjurCommandModule(object):
                               )
 
     def retrieve_secrets(self):
-        p = Popen(['/etc/conjur-env'], env=dict(os.environ, SECRETSYML=self.secretsyml), stdout=PIPE, stderr=PIPE, shell=True)
+        p = Popen(['/etc/conjur-fetch'], env=dict(os.environ, SECRETSYML=self.secretsyml), stdout=PIPE, stderr=PIPE, shell=True)
         output, error = p.communicate()
         if p.returncode != 0:
             raise Exception("retrieve_secrets failed %d %s %s\n" % (p.returncode, output, error))
