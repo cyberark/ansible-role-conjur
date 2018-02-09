@@ -1,3 +1,4 @@
 src
 conjur-env*
 vendor
+.git
