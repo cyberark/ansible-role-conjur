@@ -15,63 +15,15 @@ type Provider interface {
 	RetrieveSecret(string) ([]byte, error)
 }
 
+// example provider :)
 type CatProvider struct {
 }
 func (CatProvider) RetrieveSecret(path string) ([]byte, error) {
 	return ioutil.ReadFile(path)
 }
 
-type ConjurInfo struct {
-	Credentials ConjurCredentials `json:"credentials"`
-}
-
-type ConjurCredentials struct {
-	ApplianceURL     string `json:"appliance_url"`
-	APIKey     		 string `json:"authn_api_key"`
-	Login     		 string `json:"authn_login"`
-	Account 		 string `json:"account"`
-}
-
-func (c ConjurCredentials) setEnv() {
-	os.Setenv("CONJUR_APPLIANCE_URL", c.ApplianceURL)
-	os.Setenv("CONJUR_AUTHN_LOGIN", c.Login)
-	os.Setenv("CONJUR_AUTHN_API_KEY", c.APIKey)
-	os.Setenv("CONJUR_ACCOUNT", c.Account)
-}
-
-const SERVICE_LABEL="cyberark-conjur"
-func setConjurCredentialsEnv() error {
-	// Get the Conjur connection information from the VCAP_SERVICES
-	VCAP_SERVICES := os.Getenv("VCAP_SERVICES")
-
-	if VCAP_SERVICES == "" {
-		return fmt.Errorf("VCAP_SERVICES environment variable is empty or doesn't exist\n")
-	}
-
-	services := make(map[string][]ConjurInfo)
-	err := json.Unmarshal([]byte(VCAP_SERVICES), &services)
-	if err != nil {
-		return fmt.Errorf("Error parsing Conjur connection information: %v\n", err.Error())
-	}
-
-	info := services[SERVICE_LABEL]
-	if len(info) == 0 {
-		return fmt.Errorf("No Conjur services are bound to this application.\n")
-	}
-
-	creds := info[0].Credentials
-	creds.setEnv()
-
-	return nil
-}
-
+// conjur provider
 func NewProvider() (Provider, error) {
-	//return CatProvider{}, nil
-	//err := setConjurCredentialsEnv()
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	return conjurapi.NewClientFromEnvironment(conjurapi.LoadConfig())
 }
 
@@ -151,10 +103,10 @@ func main() {
 	secretsJSON, err := json.Marshal(secretsMap)
 	printAndExitIfError(err)
 
+	// outputs base64 encoded secret map
 	encoder.Write([]byte(secretsJSON))
 	encoder.Close()
 }
-
 
 func printAndExitIfError(err error) {
 	if err == nil {
