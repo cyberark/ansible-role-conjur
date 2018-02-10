@@ -35,11 +35,11 @@ function api_key_for {
   fi
 }
 
-function api_key_for_v4 {
-  local role_id=$1
-  if [ ! -z "$role_id" ]
+function api_key_for_v4_host {
+  local host_id=$1
+  if [ ! -z "$host_id" ]
   then
-    docker-compose exec -T cuke-master conjur host rotate_api_key --host $role_id
+    docker-compose exec -T cuke-master conjur host rotate_api_key --host $host_id
   else
     echo ERROR: api_key_for called with no argument 1>&2
     exit 1
@@ -169,6 +169,7 @@ function generate_inventory {
 }
 
 function main() {
+# initial set up
   docker-compose up -d --build
   generate_inventory
 
@@ -178,16 +179,23 @@ function main() {
   fetch_ssl_cert_v4
   wait_for_server
 
+# set up conjur v5 CLI
   CLI_CONJUR_AUTHN_API_KEY=$(api_key_for 'cucumber:user:admin')
   docker-compose up -d conjur_cli
   cli_cid=$(docker-compose ps -q conjur_cli)
+
+# apply policy, create secrets
   setup_conjurs
 
+# set useful env_vars for ansible i.e. credentials for ansible host and custom_target, and ssl certs for -
   CUSTOM_TARGET_CONJUR_AUTHN_API_KEY=$(api_key_for 'cucumber:host:ansible/ansible-custom-target')
-  CUSTOM_TARGET_CONJUR_V4_AUTHN_API_KEY=$(api_key_for_v4 'ansible/ansible-custom-target')
+  CUSTOM_TARGET_CONJUR_V4_AUTHN_API_KEY=$(api_key_for_v4_host 'ansible/ansible-custom-target')
+
   ANSIBLE_CONJUR_AUTHN_API_KEY=$(api_key_for 'cucumber:host:ansible/ansible-master')
-  ANSIBLE_CONJUR_V4_AUTHN_API_KEY=$(api_key_for_v4 'ansible/ansible-master')
+  ANSIBLE_CONJUR_V4_AUTHN_API_KEY=$(api_key_for_v4_host 'ansible/ansible-master')
+
   CONJUR_V4_SSL_CERTIFICATE="$(cat conjur_v4.pem)"
+
   docker-compose up -d ansible
   ansible_cid=$(docker-compose ps -q ansible)
 
