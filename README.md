@@ -42,6 +42,8 @@ None
 
 ## "conjur" role
 
+**Compatibility: Conjur 4, Conjur 5**
+
 The Conjur role provides a method to “Conjurize” or establish the identity of a remote node with Ansible.
 Through integration with Conjur, the machine can then be granted least-privilege access
 to retrieve the secrets it needs in a secure manner.
@@ -77,13 +79,27 @@ Configure a remote node with a Conjur identity:
 
 ## "retrieve_conjur_variable" lookup plugin
 
+**Compatibility: Conjur 4, Conjur 5**
+
 Conjur's `retrieve_conjur_variable` lookup plugin provides a means for retrieving secrets from Conjur for use in playbooks.
-Note that as lookup plugins run in the Ansible host machine, the identity that will be used for retrieving secrets
-are those of the Ansible host. Thus, the Ansible host requires god like privilege, essentially read access to every secret that a remote node may need.
+
+*Note that by default the lookup plugins uses the Conjur 5 API to retrieve secrets. To use Conjur 4 API, set an environment CONJUR_VERSION="4".*
+
+Since lookup plugins run in the Ansible host machine, the identity that will be used for retrieving secrets
+are those of the Ansible host. Thus, the Ansible host requires elevated privileges, access to all secrets that a remote node may need.
 
 The lookup plugin can be invoked in the playbook's scope as well as in a task's scope.
 
 ### Example Playbook
+Using environment variables:
+```shell
+export CONJUR_ACCOUNT="orgaccount"
+export CONJUR_VERSION="4"
+export CONJUR_APPLIANCE_URL="https://conjur-appliance"
+export CONJUR_CERT_FILE="/path/to/conjur_certficate_file"
+export CONJUR_AUTHN_LOGIN="host/host_indentity"
+export CONJUR_AUTHN_API_KEY="host API Key"
+```
 
 #### Playbook scope
 ```yml
@@ -102,6 +118,9 @@ The lookup plugin can be invoked in the playbook's scope as well as in a task's 
       vars:
         super_secret_key: {{ lookup('retrieve_conjur_variable', 'path/to/secret') }}
       shell: echo "Yay! {{super_secret_key}} was just retrieved with Conjur"
+      register: foo
+    - debug: msg="the echo was {{ foo.stdout }}"
+
 ```
 
 ## "summon_conjur" role
