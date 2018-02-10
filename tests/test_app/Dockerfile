@@ -10,5 +10,5 @@ RUN apt-get update && apt-get install -y sudo && rm -rf /var/lib/apt/lists/*
 RUN gem install conjur-cli
 
 RUN mkdir -p /usr/local/lib/summon
-COPY summon-conjur.sh /usr/local/lib/summon
+COPY summon-conjur /usr/local/lib/summon
 COPY summon /usr/local/bin

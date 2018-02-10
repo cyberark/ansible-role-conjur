@@ -16,8 +16,7 @@ def test_retrieved_secret(host):
 
     assert conjur_env_file.exists
 
-    result = host.check_output("cat conjur_env.txt", shell=True)
-
-    assert "RETRIEVED_PASSWORD=target_secret_password" in result \
-           and  "ANOTHER_RETRIEVED_PASSWORD=another_target_secret_password" in result \
-           and "LOCAL_VARIABLE=local_variable_value" in result
+    assert conjur_env_file.contains("RETRIEVED_PASSWORD=target_secret_password")
+    assert conjur_env_file.contains("EXAMPLE_CONJUR_MAJOR_VERSION=4")
+    assert conjur_env_file.contains("ANOTHER_RETRIEVED_PASSWORD=another_target_secret_password")
+    assert conjur_env_file.contains("LOCAL_VARIABLE=cucumber")

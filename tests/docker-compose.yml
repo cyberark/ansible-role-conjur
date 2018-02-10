@@ -9,7 +9,8 @@ services:
       CONJUR_ACCOUNT: cucumber
       CONJUR_AUTHN_LOGIN: host/ansible/ansible-master
       CONJUR_AUTHN_API_KEY: ${ANSIBLE_CONJUR_AUTHN_API_KEY}
-      CONJUR_CUSTOM_AUTHN_API_KEY: ${CUSTOM_CONJUR_AUTHN_API_KEY}
+      CONJUR_CUSTOM_TARGET_AUTHN_API_KEY: ${CUSTOM_TARGET_CONJUR_AUTHN_API_KEY}
+      CONJUR_V4_CUSTOM_TARGET_AUTHN_API_KEY: ${CUSTOM_TARGET_CONJUR_V4_AUTHN_API_KEY}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     volumes:
       - ..:/conjurinc/ansible-role-conjur/
@@ -42,6 +43,14 @@ services:
       - ./policy:/policy
     links:
       - conjur
+
+  cuke-master:
+    image: registry.tld/conjur-appliance-cuke-master:4.9-stable
+    volumes:
+      - ./wait_for_v4.sh:/wait_for_v4.sh
+      - ./policy:/policy
+    security_opt:
+      - seccomp:unconfined # --security-opt seccomp=unconfined
 
   test_app:
     build: ./test_app

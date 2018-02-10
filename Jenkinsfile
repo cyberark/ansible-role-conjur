@@ -9,6 +9,14 @@ pipeline {
   }
 
   stages {
+    stage('Build') {
+      steps {
+        sh './build.sh'
+
+        archiveArtifacts artifacts: 'ansible-role-conjur.tar.gz', fingerprint: true
+      }
+    }
+
     stage('Run tests') {
       steps {
         sh 'cd tests; ./test.sh'
