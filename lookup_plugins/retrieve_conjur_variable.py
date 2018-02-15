@@ -1,16 +1,20 @@
-#!/usr/bin/python
 
 import os.path
 import ssl
 from ansible.plugins.lookup import LookupBase
 from base64 import b64encode
-from httplib import HTTPSConnection
-from httplib import HTTPConnection
+try:  # python 2
+    from httplib import HTTPConnection, HTTPSConnection
+except ImportError:  # python 3
+    from http.client import HTTPConnection, HTTPSConnection
 from netrc import netrc
 from os import environ
 from time import time
-from urllib import quote_plus
-from urlparse import urlparse
+try:  # python 2
+    from urllib import quote_plus
+    from urlparse import urlparse
+except ImportError:  # python 3
+    from urllib.parse import quote_plus, urlparse
 
 
 class Token:
@@ -40,7 +44,7 @@ class Token:
                                                                                                   response.status,
                                                                                                   response.reason))
 
-        self.token = b64encode(response.read())
+        self.token = b64encode(response.read()).decode()
         self.refresh_time = time() + 5 * 60
 
     # get_header_value
@@ -124,7 +128,7 @@ class LookupModule(LookupBase):
                                                                                                         response.status,
                                                                                                         response.reason))
 
-            secrets.append(response.read())
+            secrets.append(response.read().decode())
 
         return secrets
 
@@ -171,6 +175,7 @@ class LookupModule(LookupBase):
                                        context = ssl_context)
         else:
             conjur_connection = HTTPConnection(urlparse(conf['appliance_url']).netloc)
+
         token = Token(conjur_connection, identity['id'], identity['api_key'], conf['account'], conf['version'])
 
         # retrieve secrets of the given variables from Conjur
