@@ -1,0 +1,7 @@
+---
+- name: Download and unpack Summon-Conjur
+  unarchive:
+    src: https://github.com/cyberark/summon-conjur/releases/download/v{{summon_conjur.version}}/summon-conjur-{{summon_conjur.os}}.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes
+    creates: /usr/local/bin/summon-conjur
