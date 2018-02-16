@@ -107,13 +107,11 @@ Providing a node with a Conjur Identity enables privileges to be granted by Conj
   * `conjur_host_name` `*`: Name of the host being conjurized.
   * `conjur_ssl_certificate`: Public SSL certificate of the Conjur endpoint
   * `conjur_validate_certs`: Boolean value to indicate if the Conjur endpoint should validate certificates
+  * `summon.version`: version of Summon to install. Default is `0.6.6`.
+  * `summon_conjur.version`: version of Summon-Conjur provider to install. Default is `0.5.0`.
 
 The variables marked with `*` are required fields. The other variables are required for running with an HTTPS Conjur endpoint,
 but are not required if you run with an HTTP Conjur endpoint.
-
-* summon
-  * `summon.version`: version of Summon to install. Default is `0.6.6`.
-  * `summon_conjur.version`: version of Summon-Conjur provider to install. Default is `0.5.0`.
 
 ### Example Playbook
 
@@ -126,10 +124,32 @@ Configure a remote node with a Conjur identity and Summon:
       conjur_account: 'myorg',
       conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}",
       conjur_host_name: "{{inventory_hostname}}"
-    - summon
 ```
 
-## Lookup plugin
+The above playbook:
+* Register the host with Conjur, adding it into the layer specific to the host factory token
+* Create two files used to identify the host and Conjur connection information
+* Install Summon with the Summon Conjur provider for secret retrieval from Conjur
+
+## Summon & Services
+With Summon installed, using Conjur with a Service Manager (like SystemD) becomes a snap.  Here's a simple example of a SystemD file:
+```
+[Unit]
+Description={{ springboot_application_name }}
+After=syslog.target
+
+[Service]
+User={{ springboot_user }}
+ExecStart="summon --yaml 'DB_PASSWORD: !var staging/myapp/database/password' bash -c '{{ springboot_deploy_folder }}/{{ springboot_application_name }}.jar'"
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This script uses Summon to pull the password stored in `staging/myapp/database/password`, set it to an environment variable `DB_PASSWORD`, and provide it to the Java application.  Using Summon, the secret is kept off disk. If the service is restarted, Summon retrieves the password as the application is started.
+
+## "retrieve_conjur_variable" lookup plugin
 
 **Compatibility: Conjur 4, Conjur 5**
 
