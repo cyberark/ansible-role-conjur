@@ -2,7 +2,7 @@
 
 ## v0.5.0
 
-- Summon and the Summon-Conjur provider can be installed to retrieve credential.
+- Summon and the Summon-Conjur provider are installed to retrieve credential.
 
 ## v0.4.0
 
