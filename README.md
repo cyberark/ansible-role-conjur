@@ -131,8 +131,8 @@ The above playbook:
 * Create two files used to identify the host and Conjur connection information
 * Install Summon with the Summon Conjur provider for secret retrieval from Conjur
 
-## Summon & Services
-With Summon installed, using Conjur with a Service Manager (like SystemD) becomes a snap.  Here's a simple example of a SystemD file:
+## Summon & Service Managers
+With Summon installed, using Conjur with a Service Manager (like SystemD) becomes a snap.  Here's a simple example of a SystemD file connecting to Conjur (version 5):
 ```
 [Unit]
 Description={{ springboot_application_name }}
@@ -146,8 +146,17 @@ SuccessExitStatus=143
 [Install]
 WantedBy=multi-user.target
 ```
+**Note**
+When connecting to Conjur 4 (Conjur Enterprise), the above Summon command needs to include the environment variable `CONJUR_MAJOR_VERSION` set to `4`. For example:
 
-This script uses Summon to pull the password stored in `staging/myapp/database/password`, set it to an environment variable `DB_PASSWORD`, and provide it to the Java application.  Using Summon, the secret is kept off disk. If the service is restarted, Summon retrieves the password as the application is started.
+```
+...
+ExecStart="CONJUR_MAJOR_VERSION=4 summon --yaml 'DB_PASSWORD: !var staging/myapp/database/password' bash -c '{{ springboot_deploy_folder }}/{{ springboot_application_name }}.jar'"
+...
+```
+
+The above example uses Summon to pull the password stored in `staging/myapp/database/password`, set it to an environment variable `DB_PASSWORD`, and provide it to the Java application process. Using Summon, the secret is kept off disk. If the service is restarted, Summon retrieves the password as the application is started.
+
 
 ## "retrieve_conjur_variable" lookup plugin
 
