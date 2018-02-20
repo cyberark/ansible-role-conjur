@@ -1,13 +1,16 @@
 ---
 - name: Retrieve secrets with remote target identity
   hosts: testapp
-  become: true
   vars:
     CONJUR_ACCOUNT: "cucumber"
     CONJUR_APPLIANCE_URL: "https://conjur-proxy-nginx"
     CONJUR_CUSTOM_AUTHN_API_KEY: "{{lookup('env', 'CONJUR_CUSTOM_AUTHN_API_KEY')}}"
     CONJUR_SSL_CERTIFICATE: "{{lookup('file', '../../conjur.pem')}}"
   tasks:
+    - name: Install "ca-certificates"
+      apt:
+        name: ca-certificates
+
     - name: Place Conjur public SSL certificate
       copy:
         dest: /etc/conjur.pem
