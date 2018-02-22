@@ -151,7 +151,8 @@ When connecting to Conjur 4 (Conjur Enterprise), the above Summon command needs 
 
 ```
 ...
-ExecStart="CONJUR_MAJOR_VERSION=4 summon --yaml 'DB_PASSWORD: !var staging/myapp/database/password' bash -c '{{ springboot_deploy_folder }}/{{ springboot_application_name }}.jar'"
+Environment=CONJUR_MAJOR_VERSION=4
+ExecStart="summon --yaml 'DB_PASSWORD: !var staging/myapp/database/password' bash -c '{{ springboot_deploy_folder }}/{{ springboot_application_name }}.jar'"
 ...
 ```
 
