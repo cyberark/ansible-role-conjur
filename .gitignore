@@ -10,3 +10,4 @@
 junit
 molecule/conjur.pem
 *.tmp
+vendor/

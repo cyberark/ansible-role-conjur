@@ -127,9 +127,9 @@ Configure a remote node with a Conjur identity and Summon:
 ```
 
 The above playbook:
-* Register the host with Conjur, adding it into the layer specific to the host factory token
-* Create two files used to identify the host and Conjur connection information
-* Install Summon with the Summon Conjur provider for secret retrieval from Conjur
+* Registers the host with Conjur, adding it into the layer specific to the provided host factory token.
+* Creates two files used to identify the host and Conjur connection information.
+* Installs Summon with the Summon Conjur provider for secret retrieval from Conjur.
 
 ## Summon & Service Managers
 With Summon installed, using Conjur with a Service Manager (like SystemD) becomes a snap.  Here's a simple example of a SystemD file connecting to Conjur (version 5):
@@ -243,16 +243,10 @@ executed on the remote node:
 $ SECRET_KEY=top_secret_key SECRET_PASSWORD=top_secret_password NOT_SO_SECRET_VARIABLE=some_environment_variable_value rails s
 ```
 
-
-
-
-
-
 ## Recommendations
 
 * Add `no_log: true` to each play that uses sensitive data, otherwise that data can be printed to the logs.
 * Set the Ansible files to minimum permissions. The Ansible uses the permissions of the user that runs it.
-
 
 ## License
 
