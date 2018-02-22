@@ -5,6 +5,10 @@
     state: present
 
 - block:
+  - name: Install "ca-certificates"
+    apt:
+      name: ca-certificates
+
   - name: Place Conjur public SSL certificate
     copy:
       dest: "{{conjur_ssl_certificate_path}}"

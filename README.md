@@ -47,45 +47,45 @@ Machine identity is the primary innovation in Conjur.  A machine might be a node
 * Use policy to manage user, group, and machine access to secrets  
 * Express policy as code, which is declarative, reviewable, and idempotent
 * DevOps teams manage secrets relevant to their own applications
-* Easily rotate secrets, manually or automated on a schedule (Enterprise Conjur) 
+* Easily rotate secrets, manually or automated on a schedule (Enterprise Conjur)
 * Capture all activity in audit trails (Enterprise Conjur)
 
-The Conjur integration with Ansible  provides a way for establishing machine identities with Ansible. 
+The Conjur integration with Ansible  provides a way for establishing machine identities with Ansible.
 
 ## Implementation Options
 
-The  Ansible Conjur role offers two methods for fetching secrets from a Conjur appliance: 
+The  Ansible Conjur role offers two methods for fetching secrets from a Conjur appliance:
 
-* Lookup Plugin: Control node fetches secrets 
+* Lookup Plugin: Control node fetches secrets
 * Summon module: Remote nodes fetch their own secrets
-    
+
 Both approaches are supported for Enterprise Conjur (v4) and Open Source Conjur (v5).
 
 ### Lookup Plugin: Control node fetches secrets
- 
+
 The lookup plugin uses the control node’s identity to retrieve secrets from Conjur and provide them to the relevant playbook. The control node has execute permission on all relevant variables. It retrieves values from Conjur at runtime.  The retrieved secrets are inserted by the playbook where needed before the playbook is passed to the remote nodes.  
 
-This approach provides a simple alternative to the Ansible Vault. With only minor changes to an existing playbook, you can leverage these Conjur features: 
+This approach provides a simple alternative to the Ansible Vault. With only minor changes to an existing playbook, you can leverage these Conjur features:
 
 * The Conjur RBAC model provides users and groups with access to manage and rotate secrets (in contrast to sharing an encryption key).
-* Moving secrets outside of Ansible Vault enables them to be used by a wide range of different systems. 
+* Moving secrets outside of Ansible Vault enables them to be used by a wide range of different systems.
 * Enterprise Conjur provides automated rotators that you can easily configure with a few statements added to policy.
 
 A disadvantage to the lookup plugin approach is that the control node requires access to all credentials fetched on behalf of the remote nodes, making the control node a potential high-value target.  In many production environments, a single source of privilege may not be acceptable. There is also a potential risk of accidentally leaking retrieved secrets to nodes.  All nodes targeted through a playbook will have access to secrets granted to that playbook.  
 
-Despite the control node being a single source of access, note the following: 
+Despite the control node being a single source of access, note the following:
 
 * You can mitigate the risk with thoughtful network design and by paying extra attention to securing the control node.  
-* The solution does not store secrets on the control node.  The control node simply passes the values onto the remote nodes in a playbook through SSH, and the secrets disappear along with the playbook at the end of execution. 
+* The solution does not store secrets on the control node.  The control node simply passes the values onto the remote nodes in a playbook through SSH, and the secrets disappear along with the playbook at the end of execution.
 
-The lookup plugin has the additional advantage of being quite simple and quick to implement. It   may be sufficient for smaller installations and for testing and development environments. Try this approach first to learn about Conjur and the Ansible conjur role. 
-  
+The lookup plugin has the additional advantage of being quite simple and quick to implement. It   may be sufficient for smaller installations and for testing and development environments. Try this approach first to learn about Conjur and the Ansible conjur role.
+
 #### Summon module: Remote nodes fetch their own secrets  
 
 This approach installs the CyberArk Summon tool on the remote nodes, which gives each node the access to Conjur to fetch the secrets they need.  Each remote node establishes identity and fetches values directly from Conjur. With this approach, you can grant secret access in more granular levels,  enforcing least privilege principles.
 
 The Summon module requires only  minor reworking of current playbooks to establish machine identities and group resources.  Summon must be installed on the remote nodes, and an   additional, easy-to-construct secrets file is required to define the secrets to fetch.       
- 
+
 ## Usage
 
 ### "conjur" role
@@ -107,14 +107,15 @@ Providing a node with a Conjur Identity enables privileges to be granted by Conj
   * `conjur_host_name` `*`: Name of the host being conjurized.
   * `conjur_ssl_certificate`: Public SSL certificate of the Conjur endpoint
   * `conjur_validate_certs`: Boolean value to indicate if the Conjur endpoint should validate certificates
+  * `summon.version`: version of Summon to install. Default is `0.6.6`.
+  * `summon_conjur.version`: version of Summon-Conjur provider to install. Default is `0.5.0`.
 
 The variables marked with `*` are required fields. The other variables are required for running with an HTTPS Conjur endpoint,
 but are not required if you run with an HTTP Conjur endpoint.
 
-
 ### Example Playbook
 
-Configure a remote node with a Conjur identity:
+Configure a remote node with a Conjur identity and Summon:
 ```yml
 - hosts: servers
   roles:
@@ -125,7 +126,40 @@ Configure a remote node with a Conjur identity:
       conjur_host_name: "{{inventory_hostname}}"
 ```
 
-## Lookup plugin
+The above playbook:
+* Registers the host with Conjur, adding it into the layer specific to the provided host factory token.
+* Creates two files used to identify the host and Conjur connection information.
+* Installs Summon with the Summon Conjur provider for secret retrieval from Conjur.
+
+## Summon & Service Managers
+With Summon installed, using Conjur with a Service Manager (like SystemD) becomes a snap.  Here's a simple example of a SystemD file connecting to Conjur (version 5):
+```
+[Unit]
+Description={{ springboot_application_name }}
+After=syslog.target
+
+[Service]
+User={{ springboot_user }}
+ExecStart="summon --yaml 'DB_PASSWORD: !var staging/myapp/database/password' bash -c '{{ springboot_deploy_folder }}/{{ springboot_application_name }}.jar'"
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+```
+**Note**
+When connecting to Conjur 4 (Conjur Enterprise), the above Summon command needs to include the environment variable `CONJUR_MAJOR_VERSION` set to `4`. For example:
+
+```
+...
+Environment=CONJUR_MAJOR_VERSION=4
+ExecStart="summon --yaml 'DB_PASSWORD: !var staging/myapp/database/password' bash -c '{{ springboot_deploy_folder }}/{{ springboot_application_name }}.jar'"
+...
+```
+
+The above example uses Summon to pull the password stored in `staging/myapp/database/password`, set it to an environment variable `DB_PASSWORD`, and provide it to the Java application process. Using Summon, the secret is kept off disk. If the service is restarted, Summon retrieves the password as the application is started.
+
+
+## "retrieve_conjur_variable" lookup plugin
 
 **Compatibility: Conjur 4, Conjur 5**
 
@@ -171,7 +205,7 @@ export CONJUR_AUTHN_API_KEY="host API Key"
 
 ```
 
-## Summon 
+## Summon
 
 **Compatibility: Conjur 5**
 
@@ -209,16 +243,10 @@ executed on the remote node:
 $ SECRET_KEY=top_secret_key SECRET_PASSWORD=top_secret_password NOT_SO_SECRET_VARIABLE=some_environment_variable_value rails s
 ```
 
-
-
-
-
-
 ## Recommendations
 
 * Add `no_log: true` to each play that uses sensitive data, otherwise that data can be printed to the logs.
 * Set the Ansible files to minimum permissions. The Ansible uses the permissions of the user that runs it.
-
 
 ## License
 

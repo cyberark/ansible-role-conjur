@@ -1,7 +1,6 @@
 ---
 - name: Configuring conjur identity on remote hosts
   hosts: testapp
-  become: true
   roles:
     - role: configure-conjur-identity
       conjur_account: cucumber

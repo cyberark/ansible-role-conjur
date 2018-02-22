@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.5.0
+
+- Summon and the Summon-Conjur provider are installed to retrieve credentials.
+
 ## v0.4.0
 
 - `retrieve_conjur_variable` lookup plugin is now backwards-compatible with Conjur 4. Set the enviroment variable `CONJUR_VERSION=4` on the host machine to enable Conjur 4 support.

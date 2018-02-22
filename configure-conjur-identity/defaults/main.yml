@@ -1,0 +1,7 @@
+summon:
+  version: 0.6.6
+  # TODO - this should dynamically be generated as part of the Ansible fact gathering 
+  os: linux-amd64
+summon_conjur:
+  version: 0.5.0
+  os: linux-amd64
