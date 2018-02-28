@@ -1,6 +1,6 @@
 FROM ansible/ansible:ubuntu1604
 
-RUN pip install testinfra ansible && mkdir -p /conjurinc/ansible-role-conjur/
+RUN pip install testinfra ansible && mkdir -p /conjurinc/
 
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
@@ -18,4 +18,4 @@ RUN apt-get update && apt-get install -y gcc build-essential
 RUN apt-add-repository -y ppa:brightbox/ruby-ng && apt-get update && apt-get install -y ruby2.4 ruby2.4-dev
 RUN gem install conjur-cli
 
-WORKDIR /conjurinc/ansible-role-conjur/
+WORKDIR /conjurinc/
