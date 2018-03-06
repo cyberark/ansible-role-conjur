@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.6.0
+
+- Removes the lookup plugin (available in core from Ansible v2.5.0.0, or in cyberark.conjur-lookup-plugin)
+- Removes the summon_conjur module, which is superseded by summon itself (see readme)
+- Restructures the role to be used out-of-the-box and adjusts the tests appropriately (simply require role "cyberark.conjur")
+- Removes an orphaned docker-compose.yml from the project root
+- Updates the readme to reflect the changes
+
 ## v0.5.0
 
 - Summon and the Summon-Conjur provider are installed to retrieve credentials.

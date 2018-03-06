@@ -2,7 +2,7 @@
 - name: Configuring conjur identity on remote hosts
   hosts: testapp
   roles:
-    - role: configure-conjur-identity
+    - role: cyberark.conjur
       conjur_account: cucumber
       conjur_appliance_url: "https://conjur-proxy-nginx"
       conjur_host_factory_token: "{{lookup('env', 'HFTOKEN')}}"

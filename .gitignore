@@ -11,3 +11,4 @@ junit
 molecule/conjur.pem
 *.tmp
 vendor/
+.pytest_cache

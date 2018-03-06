@@ -10,6 +10,7 @@ galaxy_info:
     - Oren Ben Meir (@orenbm)
     - Jason Vanderhoof (@jvanderhoof)
     - Kumbirai Tanekha (@doodlesbykumbi)
+    - Gary Moon (@garymoon)
 
   min_ansible_version: '2.3'
 

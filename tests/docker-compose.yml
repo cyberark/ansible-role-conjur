@@ -12,7 +12,8 @@ services:
       CONJUR_CUSTOM_AUTHN_API_KEY: ${CUSTOM_CONJUR_AUTHN_API_KEY}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     volumes:
-      - ..:/conjurinc/ansible-role-conjur/
+      - ..:/conjurinc/cyberark.conjur/
+      - ../tests:/conjurinc/tests/
       - /var/run/docker.sock:/var/run/docker.sock
   pg:
     image: postgres:9.3
