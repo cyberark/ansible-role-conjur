@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This project has been depricated. If you're looking for Conjur support for Ansible, check out our Ansible Conjur Host Identity project: https://github.com/cyberark/ansible-conjur-host-identity
+
 # ansible-role-conjur
 
 This Ansible role provides the ability to grant Conjur machine identity to a host.
